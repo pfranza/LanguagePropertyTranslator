@@ -26,6 +26,7 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 	@Parameter(alias="translator", required=true)
 	TranslatorConfig[] translators; 
 	
+	//https://en.wikipedia.org/wiki/XLIFF
 	@Parameter
 	File xliffData;
 	
