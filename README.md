@@ -7,11 +7,11 @@ Also it can create a LoremIpsum translation for generic typesetting when the a s
 Maven Configuration
 
 ```xml
-			<plugin>
+	<plugin>
                 <groupId>com.peterfranza</groupId>
-				<artifactId>PropertyTranslator</artifactId>
-				<version>1.0.0</version>
-			    <executions>
+		<artifactId>PropertyTranslator</artifactId>
+		<version>1.0.0</version>
+		<executions>
                     <execution>
                         <phase>generate-resources</phase>
                         <goals>
@@ -19,20 +19,20 @@ Maven Configuration
                         </goals>
                     </execution>
                 </executions>
-        		<configuration>
-        			<sourceLanguage>en</sourceLanguage>
-        			<fileset>
-        				<directory>${basedir}/src/main/java</directory>
-        				<includes>
-              				<include>**/*_en.properties</include>
-            			</includes>
-        			</fileset>
-        			<translators>
-        				<translator>
-        					<targetLanguage>zz</targetLanguage>
-        					<type>LOREM</type>
-        				</translator>
-        			</translators>
-        		</configuration>
-        	</plugin>
+        	<configuration>
+        		<sourceLanguage>en</sourceLanguage>
+        		<fileset>
+        			<directory>${basedir}/src/main/java</directory>
+        			<includes>
+              			<include>**/*_en.properties</include>
+            		</includes>
+        		</fileset>
+        		<translators>
+        			<translator>
+        				<targetLanguage>zz</targetLanguage>
+        				<type>LOREM</type>
+        			</translator>
+        		</translators>
+        	</configuration>
+        </plugin>
 ```
