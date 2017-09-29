@@ -2,10 +2,10 @@ package com.peterfranza.propertytranslator;
 
 import com.peterfranza.propertytranslator.translators.LOREMTranslator;
 import com.peterfranza.propertytranslator.translators.Translator;
-import com.peterfranza.propertytranslator.translators.XLIFFTranslator;
+import com.peterfranza.propertytranslator.translators.DictionaryTranslator;
 
 public enum TranslatorGeneratorType {
-	LOREM(new LOREMTranslator()), XLIFF(new XLIFFTranslator());
+	LOREM(new LOREMTranslator()), DICTIONARY(new DictionaryTranslator());
 	
 	private Translator translator;
 

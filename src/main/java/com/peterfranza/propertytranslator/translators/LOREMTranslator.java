@@ -1,5 +1,6 @@
 package com.peterfranza.propertytranslator.translators;
 
+import com.peterfranza.propertytranslator.TranslatorConfig;
 import com.thedeanda.lorem.LoremIpsum;
 
 public class LOREMTranslator implements Translator {
@@ -54,6 +55,18 @@ public class LOREMTranslator implements Translator {
 	        }
 	    }
 	    return wordCount;
+	}
+
+	public void reconfigure(TranslatorConfig config, String sourceLanguage) {
+		//NO-OP
+	}
+
+	public void open() {
+		//NO-OP
+	}
+
+	public void close() {
+		//NO-OP
 	}
 	
 }

@@ -4,7 +4,7 @@
 
 	<groupId>com.peterfranza</groupId>
 	<artifactId>PropertyTranslator</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.1.0</version>
 	<packaging>maven-plugin</packaging>
 
 	<name>PropertyTranslator</name>
@@ -23,6 +23,12 @@
 			<groupId>com.thedeanda</groupId>
 			<artifactId>lorem</artifactId>
 			<version>2.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>1.7.2</version>
 		</dependency>
 
 		<dependency>
@@ -81,14 +87,14 @@
 		<url>https://github.com/pfranza/LanguagePropertyTranslator/issues</url>
 		<system>github</system>
 	</issueManagement>
-	
+
 	<licenses>
-        <license>
-            <name>The Apache Software License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
 	<distributionManagement>
 		<snapshotRepository>
@@ -157,7 +163,7 @@
 		<name>Peter Franza</name>
 		<url>https://www.peterfranza.com/</url>
 	</organization>
-	
+
 	<developers>
 		<developer>
 			<id>pfranza</id>
@@ -166,9 +172,9 @@
 			<timezone>America/New_York</timezone>
 			<url>https://www.peterfranza.com/</url>
 			<roles>
-        		<role>architect</role>
-        		<role>developer</role>
-      		</roles>
+				<role>architect</role>
+				<role>developer</role>
+			</roles>
 		</developer>
 	</developers>
 </project>
