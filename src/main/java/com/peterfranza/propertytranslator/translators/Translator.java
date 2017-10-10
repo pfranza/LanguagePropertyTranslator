@@ -2,6 +2,8 @@ package com.peterfranza.propertytranslator.translators;
 
 import java.io.IOException;
 
+import org.apache.maven.plugin.logging.Log;
+
 import com.peterfranza.propertytranslator.TranslatorConfig;
 
 public interface Translator {
@@ -13,5 +15,7 @@ public interface Translator {
 	void open() throws Exception;
 
 	void close() throws Exception;
+
+	void printStats(Log log);
 	
 }

@@ -21,4 +21,7 @@ public class TranslatorConfig {
 	@Parameter(required=false, defaultValue="true")
 	public boolean omitMissingKeys = true;
 	
+	@Parameter(required=false, defaultValue="false")
+	public MissingKeyBackFillType missingKeyDefault = MissingKeyBackFillType.NONE;
+	
 }

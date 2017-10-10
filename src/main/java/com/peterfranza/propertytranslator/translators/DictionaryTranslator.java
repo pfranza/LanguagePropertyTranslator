@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import org.apache.maven.plugin.logging.Log;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.peterfranza.propertytranslator.TranslationMasterDictionaryType;
@@ -43,18 +45,48 @@ public class DictionaryTranslator implements Translator {
 		
 		String key = calculateKey(sourcePhrase);
 		TranslationObject target = dictionary.get(key);
-		if(target != null)
-			return target.targetPhrase;
+		if(target != null) {
+			if(target.targetPhrase != null && !target.targetPhrase.trim().isEmpty())
+				return target.targetPhrase;
+		}
 		
-		target = new TranslationObject();
-		target.calculatedKey = key;
-		target.sourcePhrase=sourcePhrase;
-		dictionary.put(key, target);
+		if(target == null) {
+			target = new TranslationObject();
+			target.calculatedKey = key;
+			target.sourcePhrase=sourcePhrase;
+			dictionary.put(key, target);
+		}
 		
 		if(config.omitMissingKeys)
 			return null;
 		else 
-			return "__UNKNOWN__";
+			return fallback(sourcePhrase);
+	}
+
+	private String fallback(String sourcePhrase) {
+		switch(config.missingKeyDefault) {
+			
+		case PRIMARYLANGUAGE:
+			return sourcePhrase;
+			
+		case QUESTIONMARK:
+			return generateQuestionMark(sourcePhrase);
+		
+		case NONE:
+		default:
+			return "";
+		}		
+	}
+
+	private String generateQuestionMark(String sourcePhrase) {
+		if(sourcePhrase == null)
+			return null;
+		
+		StringBuffer buffer = new StringBuffer();
+		for(int i=0; i<sourcePhrase.length(); i++) {
+			buffer.append("?");
+		}
+		return buffer.toString();
 	}
 
 	public void open() throws IOException {
@@ -100,6 +132,25 @@ public class DictionaryTranslator implements Translator {
 				return new JSONDictionaryLoader();
 		}
 	}
+	
+
+	@Override
+	public void printStats(Log log) {
+		long total = dictionary.size();
+		long missing = 0;
+		
+		for(TranslationObject t: dictionary.values()) {
+			if(t.targetPhrase == null || t.targetPhrase.trim().isEmpty())
+				missing += 1;
+		}
+		
+		if(missing > 0) {
+			log.error("Dictionary " + config.targetLanguage + " only has " + (total-missing) + " of " + total + " phrases (Missing "+missing+")");
+		} else {
+			log.info("Dictionary " + config.targetLanguage + " is complete");
+		}
+	}
+	
 	
 	private interface DictionaryLoader {
 
@@ -205,5 +256,5 @@ public class DictionaryTranslator implements Translator {
 		
 		
 	}
-	
+
 }

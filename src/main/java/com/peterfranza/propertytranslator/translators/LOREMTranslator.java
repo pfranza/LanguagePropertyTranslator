@@ -1,5 +1,7 @@
 package com.peterfranza.propertytranslator.translators;
 
+import org.apache.maven.plugin.logging.Log;
+
 import com.peterfranza.propertytranslator.TranslatorConfig;
 import com.thedeanda.lorem.LoremIpsum;
 
@@ -66,6 +68,11 @@ public class LOREMTranslator implements Translator {
 	}
 
 	public void close() {
+		//NO-OP
+	}
+
+	@Override
+	public void printStats(Log log) {
 		//NO-OP
 	}
 	

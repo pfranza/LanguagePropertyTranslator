@@ -63,7 +63,7 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 					fis.close();
 
 				}
-
+				t.type.getTranslator().printStats(getLog());
 				t.type.getTranslator().close();
 			}
 
