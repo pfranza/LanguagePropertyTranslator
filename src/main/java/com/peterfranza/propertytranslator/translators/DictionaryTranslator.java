@@ -10,11 +10,13 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Formatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -123,10 +125,15 @@ public class DictionaryTranslator implements Translator {
 		return result;
 	}
 
-	public static class TranslationObject {	
+	public static class TranslationObject  implements Comparable<TranslationObject> {	
 		String calculatedKey;
 		String sourcePhrase;
 		String targetPhrase = "";
+		
+		@Override
+		public int compareTo(TranslationObject o) {
+			return calculatedKey.compareTo(o.calculatedKey);
+		}
 	}
 	
 	private DictionaryLoader getDictionaryLoaderFor(TranslationMasterDictionaryType type) {
@@ -168,7 +175,7 @@ public class DictionaryTranslator implements Translator {
 	static class Dictionary {
 		String sourceLanguage;
 		String targetLanguage;
-		Collection<TranslationObject> objects;
+		List<TranslationObject> objects;
 	}
 	
 	private class JSONDictionaryLoader implements DictionaryLoader {
@@ -193,7 +200,8 @@ public class DictionaryTranslator implements Translator {
 				Dictionary d = new Dictionary();
 				d.targetLanguage = config.targetLanguage;
 				d.sourceLanguage = sourceLanguage;
-				d.objects = dictionary.values();
+				d.objects = new ArrayList<>(dictionary.values());
+				Collections.sort(d.objects);
 
 				new GsonBuilder().setPrettyPrinting().create().toJson(d, writer);
 			}
@@ -265,7 +273,6 @@ public class DictionaryTranslator implements Translator {
 	                super.write(b);
 	            } else if (b == eol) {
 	                linesSeen += 1;
-	                System.out.println("skiping char");
 	            }
 	        }
 
@@ -280,7 +287,6 @@ public class DictionaryTranslator implements Translator {
 
 	    @Override
 	    public void store(final OutputStream out, final String comments) throws IOException {
-	    	System.out.println("Storing clean");
 	        super.store(new StripFirstLineStream(out, 1), null);
 	    }
 	}
