@@ -1,6 +1,7 @@
 package com.peterfranza.propertytranslator.translators;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilterOutputStream;
@@ -225,7 +226,7 @@ public class DictionaryTranslator implements Translator {
 
 		@Override
 		public void saveFile(File masterDictionary, Map<String, TranslationObject> dictionary) throws IOException {
-			try(Writer writer = new FileWriter(masterDictionary)) {
+			try(FileOutputStream writer = new FileOutputStream(masterDictionary)) {
 				CleanProperties p = new CleanProperties();
 				for(TranslationObject o: dictionary.values()) {	
 					p.setProperty(o.calculatedKey, cascade(o.targetPhrase, o.sourcePhrase, ""));
@@ -247,18 +248,24 @@ public class DictionaryTranslator implements Translator {
 	public static class CleanProperties extends Properties {
 	    private static class StripFirstLineStream extends FilterOutputStream {
 
-	        private boolean firstlineseen = false;
+	        private int linesSeen = 0;
+			private char eol;
+			private int linesToSkip;
 
-	        public StripFirstLineStream(final OutputStream out) {
+	        public StripFirstLineStream(final OutputStream out, int linesToSkip) {
 	            super(out);
+	            this.linesToSkip = linesToSkip;
+	            eol = System.getProperty("line.separator").charAt(0);
 	        }
 
 	        @Override
 	        public void write(final int b) throws IOException {
-	            if (firstlineseen) {
+	        	
+	            if (linesSeen > linesToSkip) {
 	                super.write(b);
-	            } else if (b == '\n') {
-	                firstlineseen = true;
+	            } else if (b == eol) {
+	                linesSeen += 1;
+	                System.out.println("skiping char");
 	            }
 	        }
 
@@ -273,7 +280,8 @@ public class DictionaryTranslator implements Translator {
 
 	    @Override
 	    public void store(final OutputStream out, final String comments) throws IOException {
-	        super.store(new StripFirstLineStream(out), null);
+	    	System.out.println("Storing clean");
+	        super.store(new StripFirstLineStream(out, 1), null);
 	    }
 	}
 	
