@@ -3,16 +3,21 @@ package com.peterfranza.propertytranslator.translators;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.FilterOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.security.MessageDigest;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.TreeSet;
 
 import org.apache.maven.plugin.logging.Log;
 
@@ -221,12 +226,11 @@ public class DictionaryTranslator implements Translator {
 		@Override
 		public void saveFile(File masterDictionary, Map<String, TranslationObject> dictionary) throws IOException {
 			try(Writer writer = new FileWriter(masterDictionary)) {
-				Properties p = new Properties();
-				for(TranslationObject o: dictionary.values()) {
-				
+				CleanProperties p = new CleanProperties();
+				for(TranslationObject o: dictionary.values()) {	
 					p.setProperty(o.calculatedKey, cascade(o.targetPhrase, o.sourcePhrase, ""));
 				}
-				p.store(writer, "");
+				p.store(writer, null);
 			}
 		}
 
@@ -238,6 +242,39 @@ public class DictionaryTranslator implements Translator {
 			return "";
 		}
 		
+	}
+	
+	public static class CleanProperties extends Properties {
+	    private static class StripFirstLineStream extends FilterOutputStream {
+
+	        private boolean firstlineseen = false;
+
+	        public StripFirstLineStream(final OutputStream out) {
+	            super(out);
+	        }
+
+	        @Override
+	        public void write(final int b) throws IOException {
+	            if (firstlineseen) {
+	                super.write(b);
+	            } else if (b == '\n') {
+	                firstlineseen = true;
+	            }
+	        }
+
+	    }
+
+	    private static final long serialVersionUID = 7567765340218227372L;
+
+	    @Override
+	    public synchronized Enumeration<Object> keys() {
+	        return Collections.enumeration(new TreeSet<>(super.keySet()));
+	    }
+
+	    @Override
+	    public void store(final OutputStream out, final String comments) throws IOException {
+	        super.store(new StripFirstLineStream(out), null);
+	    }
 	}
 	
 	private class XLIFF12DictionaryLoader implements DictionaryLoader {
