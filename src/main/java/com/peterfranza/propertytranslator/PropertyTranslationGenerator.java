@@ -50,13 +50,15 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 					Properties source = new Properties();
 					source.load(fis);
 
-					CleanProperties target = new CleanProperties();
+					Properties target = new CleanProperties();
 					
 					FileOutputStream fout = new FileOutputStream(new File(root, replaceLast(f, sourceLanguage, t.targetLanguage)));
 					for(Entry<Object, Object> entry: source.entrySet()) {
 						String v = t.type.getTranslator().translate(entry.getValue().toString());
 						if(v != null) {
 							target.setProperty(entry.getKey().toString(), v);
+						} else {
+							getLog().debug("Skipping key: " + entry.getKey().toString());
 						}
 					}
 

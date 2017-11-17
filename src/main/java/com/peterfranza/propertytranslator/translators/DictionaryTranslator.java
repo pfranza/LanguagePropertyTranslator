@@ -254,26 +254,38 @@ public class DictionaryTranslator implements Translator {
 	}
 	
 	public static class CleanProperties extends Properties {
-	    private static class StripFirstLineStream extends FilterOutputStream {
+	    private static class StripCommentsStream extends FilterOutputStream {
 
-	        private int linesSeen = 0;
+	    	StringBuffer buffer = new StringBuffer();
 			private char eol;
-			private int linesToSkip;
 
-	        public StripFirstLineStream(final OutputStream out, int linesToSkip) {
+	        public StripCommentsStream(final OutputStream out) {
 	            super(out);
-	            this.linesToSkip = linesToSkip;
 	            eol = System.getProperty("line.separator").charAt(0);
 	        }
 
 	        @Override
 	        public void write(final int b) throws IOException {
+	            
+	        	buffer.append((char)b);
 	        	
-	            if (linesSeen > linesToSkip) {
-	                super.write(b);
-	            } else if (b == eol) {
-	                linesSeen += 1;
+	            if(b == eol) {
+	            	flush();
 	            }
+	            
+	        }
+	        
+	        @Override
+	        public void flush() throws IOException {
+	        	super.flush();
+	        	
+	        	if(!buffer.toString().trim().startsWith("#")) {
+	        		for(char c: buffer.toString().toCharArray()) {
+	        			super.write((int)c);
+	        		}
+	        	}
+	        	
+            	buffer.setLength(0);
 	        }
 
 	    }
@@ -287,7 +299,7 @@ public class DictionaryTranslator implements Translator {
 
 	    @Override
 	    public void store(final OutputStream out, final String comments) throws IOException {
-	        super.store(new StripFirstLineStream(out, 1), null);
+	        super.store(new StripCommentsStream(out), null);
 	    }
 	}
 	
