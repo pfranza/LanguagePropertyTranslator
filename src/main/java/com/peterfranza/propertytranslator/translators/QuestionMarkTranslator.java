@@ -23,16 +23,15 @@ public class QuestionMarkTranslator implements Translator {
 
 		for (int i=0;i<source.length();i++) {
 			char c=source.charAt(i);
-			if (insideVariable) {
+			if (c == '}') {
 				translated.append(c);
-				continue;
-			} if (c=='{') {
+				insideVariable = false;
+			} else if (c == '{') {
 				translated.append(c);
-				insideVariable=true;
-			} else if (c=='}') {
+				insideVariable = true;
+			} else if (insideVariable) {
 				translated.append(c);
-				insideVariable=false;
-			} else if (Character.isAlphabetic(c)||Character.isIdeographic(c)) {
+			} else if (Character.isAlphabetic(c) || Character.isIdeographic(c)) {
 				translated.append('?');
 			} else {
 				translated.append(c);
