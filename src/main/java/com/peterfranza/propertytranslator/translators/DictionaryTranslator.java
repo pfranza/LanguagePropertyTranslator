@@ -103,8 +103,10 @@ public class DictionaryTranslator implements Translator {
 	}
 
 	public void close() throws IOException {
-		getDictionaryLoaderFor(config.dictionaryFormat).saveFile(config.dictionary, dictionary);
-		dictionary.clear();
+		if(dictionary.size() > 0) {
+			getDictionaryLoaderFor(config.dictionaryFormat).saveFile(config.dictionary, dictionary);
+			dictionary.clear();
+		}
 	}
 	
 	private static String calculateKey(String sourcePhrase) throws Exception {
