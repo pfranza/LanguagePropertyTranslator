@@ -18,35 +18,41 @@ import org.apache.maven.shared.utils.StringUtils;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.google.common.base.CaseFormat;
-import com.google.common.base.CharMatcher;
+import com.peterfranza.propertytranslator.meta.PropertyMetaGenerationRoot;
 
 public class PropertyFileMetaContainer {
 
 	private String packageName;
 	private String metaName;
 
-	private boolean isWebApplication = false;
+	private boolean isRootProperty = false;
 	private boolean isClassCompanion = false;
 
 	private Properties source = new Properties();
 
 	private Optional<PropertyFileMetaContainer> parent = Optional.empty();
 
-	public PropertyFileMetaContainer(File inputRoot, String filename, String metaSuffix, String sourceLanguage)
+	public PropertyFileMetaContainer(File inputRoot, String filename, String metaSuffix, String packageOutputName, String sourceLanguage)
 			throws FileNotFoundException, IOException {
 		this.packageName = getPackageNameFor(inputRoot, filename);
 
 		File inputFile = new File(inputRoot, filename);
-		this.metaName = getMetaNameFor(inputFile.getName(), metaSuffix, sourceLanguage);
+		
 		try (FileInputStream fis = new FileInputStream(inputFile)) {
 			source.load(fis);
 		}
 
-		String baseName = inputFile.getName().toLowerCase().replace(".properties", "").replace("_" + sourceLanguage,
-				"");
+//		String packagePropertyFileName() default "package.properties";
+//
+//		String propertyFileName() default "${className}.properties";
+//
+
+//		String () default "";
+		
+		String baseName = inputFile.getName().toLowerCase().replace(".properties", "").replace("_" + sourceLanguage, "");
 		Arrays.asList(inputFile.getParentFile().listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
@@ -55,36 +61,48 @@ public class PropertyFileMetaContainer {
 		})).stream().findFirst().ifPresent(file -> {
 			try {
 				isClassCompanion = true;
-				new VoidVisitorAdapter<Object>() {
-					@Override
-					public void visit(ClassOrInterfaceDeclaration n, Object arg) {
-						super.visit(n, arg);
-						isWebApplication = n.getExtendedTypes().stream().filter(f -> {
-							return f.getName().asString().equalsIgnoreCase("WebApplication");
-						}).count() > 0;
-					}
-				}.visit(JavaParser.parse(file), null);
+				
+				CompilationUnit parsedFile = JavaParser.parse(file);
+				
+				parsedFile.accept(new VoidVisitorAdapter<String>() {
+			        @Override
+			        public void visit(NormalAnnotationExpr n, String arg) {
+			            super.visit(n.getPairs(), arg);
+			            
+			            if(n.getName().toString().equalsIgnoreCase(PropertyMetaGenerationRoot.class.getSimpleName())) {
+			            		isRootProperty = true;
+			            }
+			            
+			        }
+			    }, new String());
+				
 
 			} catch (Exception e) {
 
 			}
 		});
+		
+		if(isClassCompanion) {
+			this.metaName = getMetaNameFor(inputFile.getName(), metaSuffix, sourceLanguage);
+		} else {
+			this.metaName = packageOutputName + metaSuffix;
+		}
 	}
 
 	public void attachParent(Collection<PropertyFileMetaContainer> metaContainers) {
-		if (!isWebApplication && isClassCompanion) {
+		if (!isRootProperty && isClassCompanion) {
 			Optional.ofNullable(metaContainers.stream().filter(r -> {
 				return !r.isClassCompanion && r.packageName.equalsIgnoreCase(packageName);
 			}).findFirst().orElseGet(() -> {
 				return metaContainers.stream().filter(r -> {
-					return r.isWebApplication;
+					return r.isRootProperty;
 				}).findFirst().orElse(null);
 			})).ifPresent(r -> {
 				parent = Optional.of(r);
 			});
-		} else if (!isWebApplication && !isClassCompanion) {
+		} else if (!isRootProperty && !isClassCompanion) {
 			metaContainers.stream().filter(r -> {
-				return r.isWebApplication;
+				return r.isRootProperty;
 			}).findFirst().ifPresent(r -> {
 				parent = Optional.of(r);
 			});

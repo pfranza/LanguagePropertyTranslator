@@ -3,7 +3,6 @@ package com.peterfranza.propertytranslator.meta;
 import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -11,9 +10,9 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
+import javax.tools.Diagnostic.Kind;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
@@ -32,6 +31,8 @@ public class PropertyMetaGenerationProcessor extends AbstractProcessor {
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
+		processingEnv.getMessager().printMessage(Kind.NOTE, "Property Meta Generation");
+		
 		String defaultPackageName = "package.properties";
 		String defaultPropertyName = "${className}.properties";
 		String defaultGeneratedSuffix = "PropertyMeta";
@@ -49,7 +50,7 @@ public class PropertyMetaGenerationProcessor extends AbstractProcessor {
 			rootPackage = processElement(Optional.empty(), defaultPackageName, defaultPropertyName,
 					defaultGeneratedSuffix, defaultPackageOutputName, root.get());
 		}
-
+		
 		for (TypeElement procAnnotation : annotations) {
 			for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(procAnnotation)) {
 				processElement(rootPackage, defaultPackageName, defaultPropertyName, defaultGeneratedSuffix,

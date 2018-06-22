@@ -38,6 +38,9 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 	@Parameter(defaultValue = "PropertyMeta", required = false)
 	String metaSuffix = "PropertyMeta";
 	
+	@Parameter(defaultValue = "Package", required = false)
+	String packageOutputName = "Package";
+	
 	@Parameter(required=false, defaultValue="false")
 	public boolean generateMeta = false;
 
@@ -70,7 +73,7 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 				Collection<PropertyFileMetaContainer> metaContainers = new ArrayList<>();
 				for (String f : fileSetManager.getIncludedFiles(fileset)) {
 					if(isFileInSourceDirectory(new File(root, f))) {
-						metaContainers.add(new PropertyFileMetaContainer(root, f, metaSuffix, sourceLanguage));
+						metaContainers.add(new PropertyFileMetaContainer(root, f, metaSuffix, packageOutputName, sourceLanguage));
 					}
 				}
 
