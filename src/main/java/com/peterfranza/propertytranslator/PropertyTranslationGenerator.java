@@ -38,8 +38,8 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 	@Parameter(defaultValue = "PropertyMeta", required = false)
 	String metaSuffix = "PropertyMeta";
 	
-	@Parameter(required=false, defaultValue="true")
-	public boolean generateMeta = true;
+	@Parameter(required=false, defaultValue="false")
+	public boolean generateMeta = false;
 
 	private FileSetManager fileSetManager = new FileSetManager();
 
@@ -109,7 +109,6 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 
 		File outFile = getOutputFile(inputFile, inputRoot, outputRoot, config, filename);
 		outFile.getParentFile().mkdirs();
-		getLog().info("  =>> " + outFile.getAbsolutePath() );
 		FileOutputStream fout = new FileOutputStream(outFile);
 		for (Entry<Object, Object> entry : source.entrySet()) {
 			String v = config.type.getTranslator().translate(entry.getValue().toString());

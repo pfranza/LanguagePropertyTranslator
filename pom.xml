@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.peterfranza</groupId>
@@ -23,11 +24,11 @@
 			<artifactId>lorem</artifactId>
 			<version>2.1</version>
 		</dependency>
-		
+
 		<dependency>
-    			<groupId>com.github.javaparser</groupId>
-    			<artifactId>javaparser-symbol-solver-core</artifactId>
-    			<version>3.6.10</version>
+			<groupId>com.github.javaparser</groupId>
+			<artifactId>javaparser-symbol-solver-core</artifactId>
+			<version>3.6.10</version>
 		</dependency>
 
 		<dependency>
@@ -87,8 +88,8 @@
 		<url>https://github.com/pfranza/LanguagePropertyTranslator</url>
 		<developerConnection>scm:git:git@github.com:pfranza/LanguagePropertyTranslator.git</developerConnection>
 		<connection>scm:git:git@github.com:pfranza/LanguagePropertyTranslator.git</connection>
-	  <tag>PropertyTranslator-1.1.2</tag>
-  </scm>
+		<tag>PropertyTranslator-1.1.2</tag>
+	</scm>
 	<issueManagement>
 		<url>https://github.com/pfranza/LanguagePropertyTranslator/issues</url>
 		<system>github</system>
@@ -131,12 +132,12 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
-            		<groupId>org.apache.maven.plugins</groupId>
-            		<artifactId>maven-plugin-plugin</artifactId>
-            		<version>3.3</version>
-        		</plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-plugin-plugin</artifactId>
+				<version>3.3</version>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -166,6 +167,22 @@
 						</executions>
 					</plugin>
 				</plugins>
+				<resources>
+					<resource>
+						<filtering>true</filtering>
+						<directory>src/main/resources</directory>
+					</resource>
+					<resource>
+						<filtering>false</filtering>
+						<directory>src/main/java</directory>
+						<includes>
+							<include>**</include>
+						</includes>
+						<excludes>
+							<exclude>**/*.java</exclude>
+						</excludes>
+					</resource>
+				</resources>
 			</build>
 		</profile>
 	</profiles>

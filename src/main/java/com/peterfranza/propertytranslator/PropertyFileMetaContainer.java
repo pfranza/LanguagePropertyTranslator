@@ -172,7 +172,7 @@ public class PropertyFileMetaContainer {
 		return filename.replace(".properties", "").replace("/", ".");
 	}
 
-	private static String getPropertyKeyFor(String key) {
+	public static String getPropertyKeyFor(String key) {
 		ArrayList<String> parts = new ArrayList<>();
 		for (String part : key.split("\\.")) {
 			part = part.replace("-", "_");
