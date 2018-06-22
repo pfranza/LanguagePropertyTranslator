@@ -35,7 +35,7 @@ public class PropertyFileMetaContainer {
 
 	private Optional<PropertyFileMetaContainer> parent = Optional.empty();
 
-	public PropertyFileMetaContainer(File inputRoot, String filename, String metaSuffix, String packageOutputName, String sourceLanguage)
+	public PropertyFileMetaContainer(File inputRoot, String filename, String metaSuffix, String packageOutputName, String rootPropertyClass, String sourceLanguage)
 			throws FileNotFoundException, IOException {
 		this.packageName = getPackageNameFor(inputRoot, filename);
 
@@ -44,13 +44,6 @@ public class PropertyFileMetaContainer {
 		try (FileInputStream fis = new FileInputStream(inputFile)) {
 			source.load(fis);
 		}
-
-//		String packagePropertyFileName() default "package.properties";
-//
-//		String propertyFileName() default "${className}.properties";
-//
-
-//		String () default "";
 		
 		String baseName = inputFile.getName().toLowerCase().replace(".properties", "").replace("_" + sourceLanguage, "");
 		Arrays.asList(inputFile.getParentFile().listFiles(new FilenameFilter() {
@@ -64,17 +57,21 @@ public class PropertyFileMetaContainer {
 				
 				CompilationUnit parsedFile = JavaParser.parse(file);
 				
-				parsedFile.accept(new VoidVisitorAdapter<String>() {
-			        @Override
-			        public void visit(NormalAnnotationExpr n, String arg) {
-			            super.visit(n.getPairs(), arg);
-			            
-			            if(n.getName().toString().equalsIgnoreCase(PropertyMetaGenerationRoot.class.getSimpleName())) {
-			            		isRootProperty = true;
-			            }
-			            
-			        }
-			    }, new String());
+				if(rootPropertyClass != null && parsedFile.getClassByName(rootPropertyClass).isPresent()) {
+					isRootProperty = true;
+				} else {
+					parsedFile.accept(new VoidVisitorAdapter<String>() {
+						@Override
+						public void visit(NormalAnnotationExpr n, String arg) {
+							super.visit(n.getPairs(), arg);
+
+							if(n.getName().toString().equalsIgnoreCase(PropertyMetaGenerationRoot.class.getSimpleName())) {
+								isRootProperty = true;
+							} 
+
+						}
+					}, new String());
+				}
 				
 
 			} catch (Exception e) {
@@ -167,6 +164,39 @@ public class PropertyFileMetaContainer {
 	public String getPackageName() {
 		return packageName;
 	}
+	
+	
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((metaName == null) ? 0 : metaName.hashCode());
+		result = prime * result + ((packageName == null) ? 0 : packageName.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PropertyFileMetaContainer other = (PropertyFileMetaContainer) obj;
+		if (metaName == null) {
+			if (other.metaName != null)
+				return false;
+		} else if (!metaName.equals(other.metaName))
+			return false;
+		if (packageName == null) {
+			if (other.packageName != null)
+				return false;
+		} else if (!packageName.equals(other.packageName))
+			return false;
+		return true;
+	}
 
 	private static String getMetaNameFor(String filename, String metaSuffix, String sourceLanguage) {
 		return StringUtils.capitalise(
@@ -212,5 +242,7 @@ public class PropertyFileMetaContainer {
 		}
 		return true;
 	}
+	
+	
 
 }

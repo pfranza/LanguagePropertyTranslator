@@ -7,10 +7,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -41,12 +44,15 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 	@Parameter(defaultValue = "Package", required = false)
 	String packageOutputName = "Package";
 	
+	@Parameter(required = false)
+	String rootPropertyClass;
+	
 	@Parameter(required=false, defaultValue="false")
 	public boolean generateMeta = false;
 
 	private FileSetManager fileSetManager = new FileSetManager();
 
-	@Parameter(defaultValue = "${project.build.directory}/generated-sources/annotations", required = true)
+	@Parameter(defaultValue = "${project.build.directory}/generated-sources/properties", required = true)
 	public File targetFolder;
 	
 	@Parameter(defaultValue = "${project.build.sourceDirectory}", required = true)
@@ -70,12 +76,25 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 			}
 
 			if(generateMeta) {
-				Collection<PropertyFileMetaContainer> metaContainers = new ArrayList<>();
+				Set<PropertyFileMetaContainer> metaContainers = new HashSet<>();
+				ExecutorService pool = Executors.newFixedThreadPool(4);
 				for (String f : fileSetManager.getIncludedFiles(fileset)) {
-					if(isFileInSourceDirectory(new File(root, f))) {
-						metaContainers.add(new PropertyFileMetaContainer(root, f, metaSuffix, packageOutputName, sourceLanguage));
-					}
+					pool.submit(new Runnable() {
+						@Override
+						public void run() {
+							try {
+							if(isFileInSourceDirectory(new File(root, f))) {
+								metaContainers.add(new PropertyFileMetaContainer(root, f, metaSuffix, packageOutputName, rootPropertyClass, sourceLanguage));
+							}
+							} catch(Exception e) {
+								getLog().error(e);
+							}
+						}
+					});
 				}
+				
+				pool.shutdown();
+				pool.awaitTermination(1, TimeUnit.HOURS);
 
 				metaContainers.stream().forEach(r -> {
 					r.attachParent(metaContainers);
