@@ -40,12 +40,12 @@ public class TranslationDeltaExporter extends AbstractMojo {
 					.forEach(PropertyTranslationGenerator.throwingConsumerWrapper(t -> {
 						if (t.type == TranslatorGeneratorType.DICTIONARY
 								&& t.targetLanguage.equalsIgnoreCase(deltaTargetLanguage)) {
-
-							t.type.getTranslator().printStats(getLog());
-							System.out.println("Exporting " + t.targetLanguage + " to " + deltaOutputFile);
-
 							t.type.getTranslator().reconfigure(t, sourceLanguage);
 							t.type.getTranslator().open();
+							
+							t.type.getTranslator().printStats(getLog());
+							System.out.println("Exporting " + t.targetLanguage + " to " + deltaOutputFile);
+							
 
 							t.type.getTranslator().withMissingKeys((key, phrase) -> {
 								writetoOuput.println(key + delimiter + phrase);
@@ -57,7 +57,8 @@ public class TranslationDeltaExporter extends AbstractMojo {
 
 			writetoOuput.close();
 
-		} catch (FileNotFoundException e) {
+		} catch (Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 

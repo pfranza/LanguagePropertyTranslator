@@ -152,6 +152,10 @@ public class DictionaryTranslator implements Translator {
 
 	@Override
 	public void printStats(Log log) {
+		
+		if(log == null)
+			return;
+		
 		long total = dictionary.size();
 		long missing = 0;
 

@@ -40,10 +40,12 @@ public class TranslationDeltaImporter extends AbstractMojo {
 						if (t.type == TranslatorGeneratorType.DICTIONARY
 								&& t.targetLanguage.equalsIgnoreCase(deltaTargetLanguage)) {
 
-							System.out.println("Importing " + t.targetLanguage + " from " + deltaInputFile);
-
+						
 							t.type.getTranslator().reconfigure(t, sourceLanguage);
 							t.type.getTranslator().open();
+							
+							System.out.println("Importing " + t.targetLanguage + " from " + deltaInputFile);
+
 
 							try (Stream<String> stream = Files.lines(Paths.get(deltaInputFile))) {
 								stream.forEach((line) -> {
