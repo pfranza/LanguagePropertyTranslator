@@ -1,6 +1,7 @@
 package com.peterfranza.propertytranslator.translators;
 
 import java.io.IOException;
+import java.util.function.BiConsumer;
 
 import org.apache.maven.plugin.logging.Log;
 
@@ -17,5 +18,9 @@ public interface Translator {
 	void close() throws Exception;
 
 	void printStats(Log log);
-	
+
+	void withMissingKeys(BiConsumer<String, String> consumer);
+
+	void setKey(String key, String value);
+
 }
