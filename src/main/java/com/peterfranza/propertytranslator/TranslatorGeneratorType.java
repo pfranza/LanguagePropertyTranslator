@@ -7,13 +7,13 @@ import com.peterfranza.propertytranslator.translators.DictionaryTranslator;
 
 public enum TranslatorGeneratorType {
 	LOREM(new LOREMTranslator()), DICTIONARY(new DictionaryTranslator()), QUESTIONMARK(new QuestionMarkTranslator());
-	
+
 	private Translator translator;
 
 	TranslatorGeneratorType(Translator clazz) {
 		this.translator = clazz;
 	}
-	
+
 	public Translator getTranslator() {
 		return translator;
 	}

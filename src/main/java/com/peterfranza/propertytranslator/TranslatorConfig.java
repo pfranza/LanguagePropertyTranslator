@@ -8,20 +8,20 @@ public class TranslatorConfig {
 
 	@Parameter
 	public TranslatorGeneratorType type;
-	
+
 	@Parameter
 	public String targetLanguage;
-	
-	@Parameter(required=false)
+
+	@Parameter(required = false)
 	public File dictionary;
-	
-	@Parameter(required=false, defaultValue="JSON")
+
+	@Parameter(required = false, defaultValue = "JSON")
 	public TranslationMasterDictionaryType dictionaryFormat;
-	
-	@Parameter(required=false, defaultValue="true")
+
+	@Parameter(required = false, defaultValue = "true")
 	public boolean omitMissingKeys = true;
-	
-	@Parameter(required=false, defaultValue="false")
+
+	@Parameter(required = false, defaultValue = "false")
 	public MissingKeyBackFillType missingKeyDefault = MissingKeyBackFillType.NONE;
-	
+
 }

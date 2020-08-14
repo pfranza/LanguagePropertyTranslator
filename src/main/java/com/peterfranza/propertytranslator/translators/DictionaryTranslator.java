@@ -11,7 +11,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Formatter;
@@ -19,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.TreeSet;
 import java.util.function.BiConsumer;
@@ -28,6 +28,7 @@ import org.apache.maven.plugin.logging.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.peterfranza.propertytranslator.TranslationMasterDictionaryType;
+import com.peterfranza.propertytranslator.TranslationStatusSummary;
 import com.peterfranza.propertytranslator.TranslatorConfig;
 
 public class DictionaryTranslator implements Translator {
@@ -38,12 +39,14 @@ public class DictionaryTranslator implements Translator {
 
 	private String sourceLanguage;
 
+	@Override
 	public void reconfigure(TranslatorConfig config, String sourceLanguage) {
 		this.config = config;
 		this.sourceLanguage = sourceLanguage;
 		dictionary.clear();
 	}
 
+	@Override
 	public String translate(String sourcePhrase) throws Exception {
 
 		if (sourcePhrase == null)
@@ -98,11 +101,13 @@ public class DictionaryTranslator implements Translator {
 		return buffer.toString();
 	}
 
+	@Override
 	public void open() throws IOException {
 		dictionary.clear();
 		dictionary.putAll(getDictionaryLoaderFor(config.dictionaryFormat).loadFile(config.dictionary));
 	}
 
+	@Override
 	public void close() throws IOException {
 		if (dictionary.size() > 0) {
 			getDictionaryLoaderFor(config.dictionaryFormat).saveFile(config.dictionary, dictionary);
@@ -152,10 +157,10 @@ public class DictionaryTranslator implements Translator {
 
 	@Override
 	public void printStats(Log log) {
-		
-		if(log == null)
+
+		if (log == null)
 			return;
-		
+
 		long total = dictionary.size();
 		long missing = 0;
 
@@ -170,6 +175,24 @@ public class DictionaryTranslator implements Translator {
 		} else {
 			log.info("Dictionary " + config.targetLanguage + " is complete");
 		}
+	}
+
+	@Override
+	public Optional<TranslationStatusSummary> getSummary() {
+
+		long missing = 0;
+
+		for (TranslationObject t : dictionary.values()) {
+			if (t.targetPhrase == null || t.targetPhrase.trim().isEmpty())
+				missing += 1;
+		}
+
+		TranslationStatusSummary s = new TranslationStatusSummary();
+		s.setTargetLanguage(config.targetLanguage);
+		s.setTotalKeys(dictionary.size());
+		s.setMissingKeys(missing);
+
+		return Optional.of(s);
 	}
 
 	private interface DictionaryLoader {
@@ -188,6 +211,7 @@ public class DictionaryTranslator implements Translator {
 
 	private class JSONDictionaryLoader implements DictionaryLoader {
 
+		@Override
 		public Map<String, TranslationObject> loadFile(File masterDictionary) throws IOException {
 			if (masterDictionary.exists()) {
 				HashMap<String, TranslationObject> md = new HashMap<>();
@@ -202,6 +226,7 @@ public class DictionaryTranslator implements Translator {
 			return new HashMap<>();
 		}
 
+		@Override
 		public void saveFile(File masterDictionary, Map<String, TranslationObject> dictionary) throws IOException {
 			masterDictionary.getParentFile().mkdirs();
 			try (Writer writer = new FileWriter(masterDictionary)) {
@@ -271,6 +296,11 @@ public class DictionaryTranslator implements Translator {
 	}
 
 	@Override
+	public boolean hasKey(String sourceKey) {
+		return dictionary.get(sourceKey) != null;
+	}
+
+	@Override
 	public void setKey(String sourceKey, String targetValue) {
 		TranslationObject value = dictionary.get(sourceKey);
 		if (value == null) {
@@ -308,7 +338,7 @@ public class DictionaryTranslator implements Translator {
 
 				if (!buffer.toString().trim().startsWith("#")) {
 					for (char c : buffer.toString().toCharArray()) {
-						super.write((int) c);
+						super.write(c);
 					}
 				}
 

@@ -1,9 +1,11 @@
 package com.peterfranza.propertytranslator.translators;
 
+import java.util.Optional;
 import java.util.function.BiConsumer;
 
 import org.apache.maven.plugin.logging.Log;
 
+import com.peterfranza.propertytranslator.TranslationStatusSummary;
 import com.peterfranza.propertytranslator.TranslatorConfig;
 import com.thedeanda.lorem.LoremIpsum;
 
@@ -11,6 +13,7 @@ public class LOREMTranslator implements Translator {
 
 	private LoremIpsum generator = new LoremIpsum(0l);
 
+	@Override
 	public String translate(String source) {
 
 		if (source == null)
@@ -61,14 +64,17 @@ public class LOREMTranslator implements Translator {
 		return wordCount;
 	}
 
+	@Override
 	public void reconfigure(TranslatorConfig config, String sourceLanguage) {
 		// NO-OP
 	}
 
+	@Override
 	public void open() {
 		// NO-OP
 	}
 
+	@Override
 	public void close() {
 		// NO-OP
 	}
@@ -86,6 +92,16 @@ public class LOREMTranslator implements Translator {
 	@Override
 	public void setKey(String key, String value) {
 		// NO-OP
+	}
+
+	@Override
+	public Optional<TranslationStatusSummary> getSummary() {
+		return Optional.empty();
+	}
+
+	@Override
+	public boolean hasKey(String key) {
+		return true;
 	}
 
 }

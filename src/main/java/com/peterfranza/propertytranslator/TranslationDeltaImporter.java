@@ -15,6 +15,10 @@ import org.apache.maven.plugins.annotations.Parameter;
 @Mojo(name = "import-language-delta", defaultPhase = LifecyclePhase.NONE)
 public class TranslationDeltaImporter extends AbstractMojo {
 
+	public enum OnMissingKey {
+		SKIP, HALT
+	}
+
 	@Parameter(required = true)
 	String sourceLanguage;
 
@@ -30,6 +34,9 @@ public class TranslationDeltaImporter extends AbstractMojo {
 	@Parameter(property = "delimiter", alias = "delimiter", required = true, defaultValue = "|")
 	String delimiter;
 
+	@Parameter(property = "missingKey", alias = "missingKey", required = true, defaultValue = "HALT")
+	OnMissingKey missingKey;
+
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -40,12 +47,10 @@ public class TranslationDeltaImporter extends AbstractMojo {
 						if (t.type == TranslatorGeneratorType.DICTIONARY
 								&& t.targetLanguage.equalsIgnoreCase(deltaTargetLanguage)) {
 
-						
 							t.type.getTranslator().reconfigure(t, sourceLanguage);
 							t.type.getTranslator().open();
-							
-							System.out.println("Importing " + t.targetLanguage + " from " + deltaInputFile);
 
+							System.out.println("Importing " + t.targetLanguage + " from " + deltaInputFile);
 
 							try (Stream<String> stream = Files.lines(Paths.get(deltaInputFile))) {
 								stream.forEach((line) -> {
@@ -53,8 +58,11 @@ public class TranslationDeltaImporter extends AbstractMojo {
 									if (!line.isEmpty()) {
 										int idx = line.indexOf(delimiter);
 
-										String key = line.substring(0, idx);
-										String value = line.substring(idx + delimiter.length());
+										String key = line.substring(0, idx).trim();
+										String value = line.substring(idx + delimiter.length()).trim();
+
+										if (missingKey == OnMissingKey.SKIP && !t.type.getTranslator().hasKey(key))
+											return;
 
 										t.type.getTranslator().setKey(key, value);
 									}

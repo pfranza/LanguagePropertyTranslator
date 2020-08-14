@@ -1,13 +1,16 @@
 package com.peterfranza.propertytranslator.translators;
 
+import java.util.Optional;
 import java.util.function.BiConsumer;
 
 import org.apache.maven.plugin.logging.Log;
 
+import com.peterfranza.propertytranslator.TranslationStatusSummary;
 import com.peterfranza.propertytranslator.TranslatorConfig;
 
 public class QuestionMarkTranslator implements Translator {
 
+	@Override
 	public String translate(String source) {
 
 		if (source == null)
@@ -42,14 +45,17 @@ public class QuestionMarkTranslator implements Translator {
 		return translated.toString();
 	}
 
+	@Override
 	public void reconfigure(TranslatorConfig config, String sourceLanguage) {
 		// NO-OP
 	}
 
+	@Override
 	public void open() {
 		// NO-OP
 	}
 
+	@Override
 	public void close() {
 		// NO-OP
 	}
@@ -67,6 +73,16 @@ public class QuestionMarkTranslator implements Translator {
 	@Override
 	public void setKey(String key, String value) {
 		// NO-OP
+	}
+
+	@Override
+	public Optional<TranslationStatusSummary> getSummary() {
+		return Optional.empty();
+	}
+
+	@Override
+	public boolean hasKey(String key) {
+		return true;
 	}
 
 }

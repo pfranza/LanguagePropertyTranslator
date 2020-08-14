@@ -1,10 +1,11 @@
 package com.peterfranza.propertytranslator.translators;
 
-import java.io.IOException;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 
 import org.apache.maven.plugin.logging.Log;
 
+import com.peterfranza.propertytranslator.TranslationStatusSummary;
 import com.peterfranza.propertytranslator.TranslatorConfig;
 
 public interface Translator {
@@ -19,8 +20,12 @@ public interface Translator {
 
 	void printStats(Log log);
 
+	Optional<TranslationStatusSummary> getSummary();
+
 	void withMissingKeys(BiConsumer<String, String> consumer);
 
 	void setKey(String key, String value);
+
+	boolean hasKey(String key);
 
 }
