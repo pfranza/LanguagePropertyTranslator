@@ -10,7 +10,7 @@ Maven Configuration
 	<plugin>
                 <groupId>com.peterfranza</groupId>
 		<artifactId>PropertyTranslator</artifactId>
-		<version>1.1.8</version>
+		<version>1.3.0</version>
 		<executions>
                     <execution>
                         <phase>generate-resources</phase>
@@ -35,4 +35,16 @@ Maven Configuration
         		</translators>
         	</configuration>
         </plugin>
+```
+
+You can create a | delimited file to ease translation by running 
+
+```
+mvn -DdeltaOutputFile=project_es.diff.csv -DdeltaTargetLanguage=es  PropertyTranslator:export-language-delta
+```
+
+Then once that file is translated you can reimport it into the dictionary using 
+
+```
+ mvn -DdeltaInputFile=project_es.diff.translated.csv -DdeltaTargetLanguage=es  PropertyTranslator:import-language-delta
 ```
