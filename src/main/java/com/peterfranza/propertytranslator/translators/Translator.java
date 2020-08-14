@@ -11,6 +11,7 @@ public interface Translator {
 
 	public enum TranslationType {MACHINE, SERVICE}
 	
+	String getSourceLanguage();
 	
 	String translate(String string) throws Exception;
 

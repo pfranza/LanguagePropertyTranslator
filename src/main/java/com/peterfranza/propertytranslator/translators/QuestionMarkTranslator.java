@@ -9,6 +9,8 @@ import com.peterfranza.propertytranslator.TranslatorConfig;
 
 public class QuestionMarkTranslator implements Translator {
 
+	private String sourceLanguage;
+
 	@Override
 	public String translate(String source) {
 
@@ -46,7 +48,7 @@ public class QuestionMarkTranslator implements Translator {
 
 	@Override
 	public void reconfigure(TranslatorConfig config, String sourceLanguage) {
-		// NO-OP
+		this.sourceLanguage = sourceLanguage;
 	}
 
 	@Override
@@ -82,6 +84,11 @@ public class QuestionMarkTranslator implements Translator {
 	@Override
 	public boolean hasKey(String key) {
 		return true;
+	}
+	
+	@Override
+	public String getSourceLanguage() {
+		return this.sourceLanguage;
 	}
 
 }

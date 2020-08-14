@@ -33,7 +33,7 @@ public abstract class AbstractMachineTranslationMojo extends AbstractMojo {
 				t.type.getTranslator().withMissingKeys((key, phrase) -> {
 					
 					try {
-						Optional<String> p = translate(phrase);
+						Optional<String> p = translate(t, phrase);
 						if(p.isPresent()) {
 							t.type.getTranslator().setKey(key, p.get(), Translator.TranslationType.MACHINE);
 						}	
@@ -50,6 +50,6 @@ public abstract class AbstractMachineTranslationMojo extends AbstractMojo {
 		}));
 	}
 	
-	public abstract Optional<String> translate(String sourcePhrase) throws IOException;
+	public abstract Optional<String> translate(TranslatorConfig config, String sourcePhrase) throws IOException;
 
 }

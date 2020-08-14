@@ -29,7 +29,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.peterfranza.propertytranslator.TranslationMasterDictionaryType;
 import com.peterfranza.propertytranslator.TranslatorConfig;
-import com.peterfranza.propertytranslator.translators.Translator.TranslationType;
 
 public class DictionaryTranslator implements Translator {
 
@@ -113,6 +112,10 @@ public class DictionaryTranslator implements Translator {
 			getDictionaryLoaderFor(config.dictionaryFormat).saveFile(config.dictionary, dictionary);
 			dictionary.clear();
 		}
+	}
+	
+	public String getSourceLanguage() {
+		return sourceLanguage;
 	}
 
 	private static String calculateKey(String sourcePhrase) throws Exception {

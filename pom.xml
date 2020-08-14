@@ -81,7 +81,13 @@
     			<artifactId>reflections</artifactId>
     			<version>0.9.12</version>
 		</dependency>
-	
+		
+  		<dependency>
+    		<groupId>com.amazonaws</groupId>
+   			<artifactId>aws-java-sdk-translate</artifactId>
+    		<version>1.11.840</version>
+		</dependency>
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
