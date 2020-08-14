@@ -5,11 +5,13 @@ import java.util.function.BiConsumer;
 
 import org.apache.maven.plugin.logging.Log;
 
-import com.peterfranza.propertytranslator.TranslationStatusSummary;
 import com.peterfranza.propertytranslator.TranslatorConfig;
 
 public interface Translator {
 
+	public enum TranslationType {MACHINE, SERVICE}
+	
+	
 	String translate(String string) throws Exception;
 
 	void reconfigure(TranslatorConfig config, String sourceLanguage);
@@ -24,7 +26,7 @@ public interface Translator {
 
 	void withMissingKeys(BiConsumer<String, String> consumer);
 
-	void setKey(String key, String value);
+	void setKey(String key, String value, TranslationType type);
 
 	boolean hasKey(String key);
 

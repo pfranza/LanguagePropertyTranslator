@@ -28,8 +28,8 @@ import org.apache.maven.plugin.logging.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.peterfranza.propertytranslator.TranslationMasterDictionaryType;
-import com.peterfranza.propertytranslator.TranslationStatusSummary;
 import com.peterfranza.propertytranslator.TranslatorConfig;
+import com.peterfranza.propertytranslator.translators.Translator.TranslationType;
 
 public class DictionaryTranslator implements Translator {
 
@@ -133,10 +133,13 @@ public class DictionaryTranslator implements Translator {
 		return result;
 	}
 
+
 	public static class TranslationObject implements Comparable<TranslationObject> {
 		String calculatedKey;
 		String sourcePhrase;
 		String targetPhrase = "";
+		TranslationType type = TranslationType.MACHINE;
+
 
 		@Override
 		public int compareTo(TranslationObject o) {
@@ -181,16 +184,21 @@ public class DictionaryTranslator implements Translator {
 	public Optional<TranslationStatusSummary> getSummary() {
 
 		long missing = 0;
+		long machine = 0;
 
 		for (TranslationObject t : dictionary.values()) {
 			if (t.targetPhrase == null || t.targetPhrase.trim().isEmpty())
 				missing += 1;
+			
+			if(t.type == TranslationType.MACHINE)
+				machine += 1;
 		}
 
 		TranslationStatusSummary s = new TranslationStatusSummary();
 		s.setTargetLanguage(config.targetLanguage);
 		s.setTotalKeys(dictionary.size());
 		s.setMissingKeys(missing);
+		s.setMachineKeys(machine);
 
 		return Optional.of(s);
 	}
@@ -301,13 +309,14 @@ public class DictionaryTranslator implements Translator {
 	}
 
 	@Override
-	public void setKey(String sourceKey, String targetValue) {
+	public void setKey(String sourceKey, String targetValue, TranslationType type) {
 		TranslationObject value = dictionary.get(sourceKey);
 		if (value == null) {
 			throw new RuntimeException("Unknown dictionary key: " + sourceKey);
 		}
 
 		value.targetPhrase = targetValue;
+		value.type  = type;
 	}
 
 	public static class CleanProperties extends Properties {

@@ -5,8 +5,8 @@ import java.util.function.BiConsumer;
 
 import org.apache.maven.plugin.logging.Log;
 
-import com.peterfranza.propertytranslator.TranslationStatusSummary;
 import com.peterfranza.propertytranslator.TranslatorConfig;
+import com.peterfranza.propertytranslator.translators.Translator.TranslationType;
 import com.thedeanda.lorem.LoremIpsum;
 
 public class LOREMTranslator implements Translator {
@@ -90,7 +90,7 @@ public class LOREMTranslator implements Translator {
 	}
 
 	@Override
-	public void setKey(String key, String value) {
+	public void setKey(String key, String value, TranslationType type) {
 		// NO-OP
 	}
 

@@ -1,9 +1,10 @@
-package com.peterfranza.propertytranslator;
+package com.peterfranza.propertytranslator.translators;
 
 public class TranslationStatusSummary {
 	private String targetLanguage;
 	private long totalKeys = 0;
 	private long missingKeys = 0;
+	private long machineKeys = 0;
 
 	public String getTargetLanguage() {
 		return targetLanguage;
@@ -27,6 +28,14 @@ public class TranslationStatusSummary {
 
 	public void setMissingKeys(long missingKeys) {
 		this.missingKeys = missingKeys;
+	}
+	
+	public long getMachineKeys() {
+		return machineKeys;
+	}
+	
+	public void setMachineKeys(long machineKeys) {
+		this.machineKeys = machineKeys;
 	}
 
 }

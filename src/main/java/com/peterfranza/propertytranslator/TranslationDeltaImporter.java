@@ -12,6 +12,8 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import com.peterfranza.propertytranslator.translators.Translator.TranslationType;
+
 @Mojo(name = "import-language-delta", defaultPhase = LifecyclePhase.NONE)
 public class TranslationDeltaImporter extends AbstractMojo {
 
@@ -36,6 +38,9 @@ public class TranslationDeltaImporter extends AbstractMojo {
 
 	@Parameter(property = "missingKey", alias = "missingKey", required = true, defaultValue = "HALT")
 	OnMissingKey missingKey;
+	
+	@Parameter(property = "translationType", alias = "translationType", required = true)
+	TranslationType translationType;
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
@@ -64,7 +69,7 @@ public class TranslationDeltaImporter extends AbstractMojo {
 										if (missingKey == OnMissingKey.SKIP && !t.type.getTranslator().hasKey(key))
 											return;
 
-										t.type.getTranslator().setKey(key, value);
+										t.type.getTranslator().setKey(key, value, translationType);
 									}
 
 								});

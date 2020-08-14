@@ -34,6 +34,7 @@ import org.reflections.scanners.ResourcesScanner;
 import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
+import com.peterfranza.propertytranslator.translators.TranslationStatusSummary;
 import com.peterfranza.propertytranslator.translators.DictionaryTranslator.CleanProperties;
 
 @Mojo(name = "generate-languages", defaultPhase = LifecyclePhase.GENERATE_RESOURCES)
