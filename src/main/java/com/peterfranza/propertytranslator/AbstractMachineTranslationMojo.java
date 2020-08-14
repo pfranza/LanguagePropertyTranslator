@@ -9,6 +9,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import com.peterfranza.propertytranslator.TranslationDeltaExporter.DetectHtml;
 import com.peterfranza.propertytranslator.translators.Translator;
 
 public abstract class AbstractMachineTranslationMojo extends AbstractMojo {
@@ -32,14 +33,16 @@ public abstract class AbstractMachineTranslationMojo extends AbstractMojo {
 				t.type.getTranslator().open();
 				t.type.getTranslator().withMissingKeys((key, phrase) -> {
 					
-					try {
-						Optional<String> p = translate(t, phrase);
-						if(p.isPresent()) {
-							t.type.getTranslator().setKey(key, p.get(), Translator.TranslationType.MACHINE);
-						}	
-					} catch (IOException e) {
-						e.printStackTrace();
-						throw new RuntimeException(e);
+					if(!DetectHtml.isHtml(phrase)) {
+						try {
+							Optional<String> p = translate(t, phrase);
+							if(p.isPresent()) {
+								t.type.getTranslator().setKey(key, p.get(), Translator.TranslationType.MACHINE);
+							}	
+						} catch (IOException e) {
+							e.printStackTrace();
+							throw new RuntimeException(e);
+						}
 					}
 					
 					
