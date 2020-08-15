@@ -58,6 +58,11 @@ public class Utils {
 				buffer.setLength(0);
 			} else if (c == '{') {
 				insideVariable = true;
+				
+				if(i != 0 && source.charAt(i-1) == '$') {
+					buffer.append("$");
+				}
+				
 				buffer.append(c);
 			} else if (insideVariable) {
 				buffer.append(c);
@@ -79,5 +84,5 @@ public class Utils {
 		}
 		return true;
 	}
-
+	
 }
