@@ -15,15 +15,14 @@ public class AmazonTranslationMojo extends AbstractMachineTranslationMojo {
 
 	@Override
 	public Optional<String> translate(TranslatorConfig config, String sourcePhrase) throws IOException {
-		
-		TranslateTextRequest translateTextRequest = new TranslateTextRequest()
-	               .withText(sourcePhrase)
-	               .withSourceLanguageCode(config.type.getTranslator().getSourceLanguage())
-	               .withTargetLanguageCode(deltaTargetLanguage);
-		
-		TranslateTextResult response = AmazonTranslateAsyncClientBuilder.standard()
-				.build().translateText(translateTextRequest);
-		
+
+		TranslateTextRequest translateTextRequest = new TranslateTextRequest().withText(sourcePhrase)
+				.withSourceLanguageCode(config.type.getTranslator().getSourceLanguage())
+				.withTargetLanguageCode(deltaTargetLanguage);
+
+		TranslateTextResult response = AmazonTranslateAsyncClientBuilder.standard().build()
+				.translateText(translateTextRequest);
+
 		return Optional.ofNullable(response.getTranslatedText());
 	}
 

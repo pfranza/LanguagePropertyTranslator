@@ -29,11 +29,11 @@ public class TranslationStatusSummary {
 	public void setMissingKeys(long missingKeys) {
 		this.missingKeys = missingKeys;
 	}
-	
+
 	public long getMachineKeys() {
 		return machineKeys;
 	}
-	
+
 	public void setMachineKeys(long machineKeys) {
 		this.machineKeys = machineKeys;
 	}

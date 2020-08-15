@@ -3,6 +3,8 @@ package com.peterfranza.propertytranslator;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.apache.maven.plugin.AbstractMojo;
@@ -38,7 +40,7 @@ public class TranslationDeltaImporter extends AbstractMojo {
 
 	@Parameter(property = "missingKey", alias = "missingKey", required = true, defaultValue = "HALT")
 	OnMissingKey missingKey;
-	
+
 	@Parameter(property = "translationType", alias = "translationType", required = true)
 	TranslationType translationType;
 
@@ -68,6 +70,17 @@ public class TranslationDeltaImporter extends AbstractMojo {
 
 										if (missingKey == OnMissingKey.SKIP && !t.type.getTranslator().hasKey(key))
 											return;
+
+										Optional<String> sourcePhrase = t.type.getTranslator().getSourcePhrase(key);
+										if (sourcePhrase.isPresent()) {
+											List<String> vars = Utils.extractVaribleExpressions(sourcePhrase.get());
+											if (!Utils.expressionContainsVariableDefinitions(value, vars)) {
+												getLog().error("Translation Key: " + key
+														+ " does not contain all the variables " + vars
+														+ " ... skipping");
+												return;
+											}
+										}
 
 										t.type.getTranslator().setKey(key, value, translationType);
 									}

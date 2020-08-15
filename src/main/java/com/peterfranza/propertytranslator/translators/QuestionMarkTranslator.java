@@ -85,10 +85,15 @@ public class QuestionMarkTranslator implements Translator {
 	public boolean hasKey(String key) {
 		return true;
 	}
-	
+
 	@Override
 	public String getSourceLanguage() {
 		return this.sourceLanguage;
+	}
+
+	@Override
+	public Optional<String> getSourcePhrase(String key) {
+		return Optional.empty();
 	}
 
 }

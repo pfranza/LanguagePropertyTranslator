@@ -113,7 +113,8 @@ public class DictionaryTranslator implements Translator {
 			dictionary.clear();
 		}
 	}
-	
+
+	@Override
 	public String getSourceLanguage() {
 		return sourceLanguage;
 	}
@@ -136,13 +137,11 @@ public class DictionaryTranslator implements Translator {
 		return result;
 	}
 
-
 	public static class TranslationObject implements Comparable<TranslationObject> {
 		String calculatedKey;
 		String sourcePhrase;
 		String targetPhrase = "";
 		TranslationType type = TranslationType.MACHINE;
-
 
 		@Override
 		public int compareTo(TranslationObject o) {
@@ -192,8 +191,8 @@ public class DictionaryTranslator implements Translator {
 		for (TranslationObject t : dictionary.values()) {
 			if (t.targetPhrase == null || t.targetPhrase.trim().isEmpty())
 				missing += 1;
-			
-			if(t.type == TranslationType.MACHINE)
+
+			if (t.type == TranslationType.MACHINE)
 				machine += 1;
 		}
 
@@ -319,7 +318,17 @@ public class DictionaryTranslator implements Translator {
 		}
 
 		value.targetPhrase = targetValue;
-		value.type  = type;
+		value.type = type;
+	}
+
+	@Override
+	public Optional<String> getSourcePhrase(String sourceKey) {
+		TranslationObject value = dictionary.get(sourceKey);
+		if (value == null) {
+			return Optional.empty();
+		}
+
+		return Optional.of(value.sourcePhrase);
 	}
 
 	public static class CleanProperties extends Properties {

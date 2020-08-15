@@ -9,10 +9,12 @@ import com.peterfranza.propertytranslator.TranslatorConfig;
 
 public interface Translator {
 
-	public enum TranslationType {MACHINE, SERVICE}
-	
+	public enum TranslationType {
+		MACHINE, SERVICE
+	}
+
 	String getSourceLanguage();
-	
+
 	String translate(String string) throws Exception;
 
 	void reconfigure(TranslatorConfig config, String sourceLanguage);
@@ -24,6 +26,8 @@ public interface Translator {
 	void printStats(Log log);
 
 	Optional<TranslationStatusSummary> getSummary();
+
+	Optional<String> getSourcePhrase(String key);
 
 	void withMissingKeys(BiConsumer<String, String> consumer);
 
