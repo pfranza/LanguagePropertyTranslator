@@ -328,20 +328,5 @@ public class DictionaryTranslator implements Translator {
 		}
 	}
 
-	private class XLIFF12DictionaryLoader implements DictionaryLoader {
-
-		@Override
-		public Map<String, TranslationObject> loadFile(File masterDictionary) throws IOException {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public void saveFile(File masterDictionary, Map<String, TranslationObject> dictionary) throws IOException {
-			// TODO Auto-generated method stub
-
-		}
-
-	}
 
 }
