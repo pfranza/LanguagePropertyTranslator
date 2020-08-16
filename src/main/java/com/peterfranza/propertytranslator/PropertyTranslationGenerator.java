@@ -113,11 +113,14 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 
 			List<TranslationStatusSummary> summary = new ArrayList<>();
 
-			Arrays.asList(translators).parallelStream().forEach(throwingConsumerWrapper(t -> {
+			Arrays.asList(translators).stream().forEach(throwingConsumerWrapper(t -> {
+				
+				getLog().info(t.toString());
+				
 				t.type.getTranslator().reconfigure(t, sourceLanguage);
 				t.type.getTranslator().open();
 
-				workItems.parallelStream().forEach(throwingConsumerWrapper(workItem -> {
+				workItems.stream().forEach(throwingConsumerWrapper(workItem -> {
 					getLog().info("Processing: " + workItem.getName() + " for " + t.targetLanguage);
 					generateLanguagePropertyFiles(root, getOutputRoot(root), t, workItem);
 				}));

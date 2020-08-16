@@ -1,7 +1,6 @@
 package com.peterfranza.propertytranslator.translators;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilterOutputStream;
@@ -17,7 +16,6 @@ import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.TreeSet;
@@ -27,7 +25,6 @@ import org.apache.maven.plugin.logging.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.peterfranza.propertytranslator.TranslationMasterDictionaryType;
 import com.peterfranza.propertytranslator.TranslatorConfig;
 
 public class DictionaryTranslator implements Translator {
@@ -42,7 +39,7 @@ public class DictionaryTranslator implements Translator {
 	public void reconfigure(TranslatorConfig config, String sourceLanguage) {
 		this.config = config;
 		this.sourceLanguage = sourceLanguage;
-		dictionary.clear();
+		dictionary = new HashMap<String, TranslationObject>();
 	}
 
 	@Override
@@ -102,16 +99,17 @@ public class DictionaryTranslator implements Translator {
 
 	@Override
 	public void open() throws IOException {
-		dictionary.clear();
-		dictionary.putAll(getDictionaryLoaderFor(config.dictionaryFormat).loadFile(config.dictionary));
+		dictionary  = new HashMap<String, TranslationObject>();
+		dictionary.putAll(getDictionaryLoaderFor().loadFile(config.dictionary));
 	}
 
 	@Override
 	public void close() throws IOException {
 		if (dictionary.size() > 0) {
-			getDictionaryLoaderFor(config.dictionaryFormat).saveFile(config.dictionary, dictionary);
-			dictionary.clear();
+			getDictionaryLoaderFor().saveFile(config.dictionary, dictionary);
 		}
+		
+		dictionary = null;
 	}
 
 	@Override
@@ -149,15 +147,8 @@ public class DictionaryTranslator implements Translator {
 		}
 	}
 
-	private DictionaryLoader getDictionaryLoaderFor(TranslationMasterDictionaryType type) {
-		switch (type) {
-
-		case PROPERTIES:
-			return new PropertiesDictionaryLoader();
-
-		default:
-			return new JSONDictionaryLoader();
-		}
+	private DictionaryLoader getDictionaryLoaderFor() {
+		return new JSONDictionaryLoader();
 	}
 
 	@Override
@@ -248,50 +239,6 @@ public class DictionaryTranslator implements Translator {
 
 				new GsonBuilder().setPrettyPrinting().create().toJson(d, writer);
 			}
-		}
-
-	}
-
-	private class PropertiesDictionaryLoader implements DictionaryLoader {
-
-		@Override
-		public Map<String, TranslationObject> loadFile(File masterDictionary) throws IOException {
-			if (masterDictionary.exists()) {
-				HashMap<String, TranslationObject> md = new HashMap<>();
-				try (Reader reader = new FileReader(masterDictionary)) {
-					Properties p = new Properties();
-					p.load(reader);
-
-					for (Entry<Object, Object> es : p.entrySet()) {
-						TranslationObject o = new TranslationObject();
-						o.calculatedKey = es.getKey().toString();
-						o.sourcePhrase = "";
-						o.targetPhrase = es.getValue().toString();
-						md.put(es.getKey().toString(), o);
-					}
-				}
-				return md;
-			}
-			return new HashMap<>();
-		}
-
-		@Override
-		public void saveFile(File masterDictionary, Map<String, TranslationObject> dictionary) throws IOException {
-			try (FileOutputStream writer = new FileOutputStream(masterDictionary)) {
-				CleanProperties p = new CleanProperties();
-				for (TranslationObject o : dictionary.values()) {
-					p.setProperty(o.calculatedKey, cascade(o.targetPhrase, o.sourcePhrase, ""));
-				}
-				p.store(writer, null);
-			}
-		}
-
-		private String cascade(String... string) {
-			for (String s : string) {
-				if (s != null && !s.isEmpty())
-					return s;
-			}
-			return "";
 		}
 
 	}

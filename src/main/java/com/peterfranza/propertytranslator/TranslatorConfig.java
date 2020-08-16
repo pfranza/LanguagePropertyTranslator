@@ -15,13 +15,19 @@ public class TranslatorConfig {
 	@Parameter(required = false)
 	public File dictionary;
 
-	@Parameter(required = false, defaultValue = "JSON")
-	public TranslationMasterDictionaryType dictionaryFormat;
-
 	@Parameter(required = false, defaultValue = "true")
 	public boolean omitMissingKeys = true;
 
 	@Parameter(required = false, defaultValue = "false")
 	public MissingKeyBackFillType missingKeyDefault = MissingKeyBackFillType.NONE;
 
+	@Override
+	public String toString() {
+		return "TranslatorConfig [type=" + type + ", targetLanguage=" + targetLanguage + ", dictionary=" + dictionary
+				+ ", omitMissingKeys=" + omitMissingKeys
+				+ ", missingKeyDefault=" + missingKeyDefault + "]";
+	}
+
+	
+	
 }

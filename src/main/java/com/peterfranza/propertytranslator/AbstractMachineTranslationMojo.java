@@ -26,7 +26,7 @@ public abstract class AbstractMachineTranslationMojo extends AbstractMojo {
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		Arrays.asList(translators).parallelStream().forEach(PropertyTranslationGenerator.throwingConsumerWrapper(t -> {
+		Arrays.asList(translators).stream().forEach(PropertyTranslationGenerator.throwingConsumerWrapper(t -> {
 			if (t.type == TranslatorGeneratorType.DICTIONARY
 					&& t.targetLanguage.equalsIgnoreCase(deltaTargetLanguage)) {
 				t.type.getTranslator().reconfigure(t, sourceLanguage);

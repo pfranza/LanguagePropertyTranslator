@@ -51,10 +51,11 @@ public class TranslationDeltaExporter extends AbstractMojo {
 			PrintStream writetoOuput = new PrintStream(
 					new FileOutputStream(deltaOutputFile, outputMode == OutputMode.APPEND));
 
-			Arrays.asList(translators).parallelStream()
+			Arrays.asList(translators).stream()
 					.forEach(PropertyTranslationGenerator.throwingConsumerWrapper(t -> {
 						if (t.type == TranslatorGeneratorType.DICTIONARY
 								&& t.targetLanguage.equalsIgnoreCase(deltaTargetLanguage)) {
+							getLog().info(t.toString());
 							t.type.getTranslator().reconfigure(t, sourceLanguage);
 							t.type.getTranslator().open();
 
