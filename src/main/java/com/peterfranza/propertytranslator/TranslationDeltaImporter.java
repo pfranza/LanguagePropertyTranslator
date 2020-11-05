@@ -2,9 +2,12 @@ package com.peterfranza.propertytranslator;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.apache.maven.plugin.AbstractMojo;
@@ -48,6 +51,11 @@ public class TranslationDeltaImporter extends AbstractMojo {
 	public void execute() throws MojoExecutionException, MojoFailureException {
 
 		try {
+			
+			List<ImportIntegrityChecker> checkers = Arrays.asList(
+					TranslationDeltaImporter::matchesVariableExpressions,
+					TranslationDeltaImporter::matchesVariableCounting,
+					TranslationDeltaImporter::matchesVariableSpacing);
 
 			Arrays.asList(translators).stream()
 					.forEach(PropertyTranslationGenerator.throwingConsumerWrapper(t -> {
@@ -73,13 +81,16 @@ public class TranslationDeltaImporter extends AbstractMojo {
 
 										Optional<String> sourcePhrase = t.type.getTranslator().getSourcePhrase(key);
 										if (sourcePhrase.isPresent()) {
-											List<String> vars = Utils.extractVaribleExpressions(sourcePhrase.get());
-											if (!Utils.expressionContainsVariableDefinitions(value, vars)) {
-												getLog().error("Translation Key: " + key
-														+ " does not contain all the variables " + vars
-														+ " ... skipping");
+											AtomicBoolean validFlag = new AtomicBoolean(true);
+											checkers.forEach(c -> {
+												if(!c.validate(key, sourcePhrase.get(), value, getLog()::error)) {
+													validFlag.set(false);
+												}
+											});
+											
+											if(!validFlag.get()) {
 												return;
-											}
+											}											
 										}
 
 										t.type.getTranslator().setKey(key, value, translationType);
@@ -98,6 +109,110 @@ public class TranslationDeltaImporter extends AbstractMojo {
 			throw new RuntimeException(e);
 		}
 
+	}
+	
+	/**
+	 * 
+	 * This check is to confirm that the target string contains all the same variables as the source string
+	 * 
+	 * @param key
+	 * @param sourceString
+	 * @param targetString
+	 * @param errorLogConsumer
+	 * @return
+	 */
+	private static boolean matchesVariableExpressions(String key, String sourceString, String targetString, Consumer<String> errorLogConsumer) {
+		List<String> vars = Utils.extractVaribleExpressions(sourceString);
+		if (!Utils.expressionContainsVariableDefinitions(targetString, vars)) {
+			errorLogConsumer.accept("Translation Key: " 
+					+ key
+					+ " does not contain all the variables " + vars
+					+ " ... skipping");
+			return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * This check is to confirm that during the translation process no spaces were removed surrounding the edges of a variable
+	 * @param key
+	 * @param sourceString
+	 * @param targetString
+	 * @param errorLogConsumer
+	 * @return
+	 */
+	private static boolean matchesVariableSpacing(String key, String sourceString, String targetString, Consumer<String> errorLogConsumer) {
+		List<String> vars = Utils.extractVaribleExpressions(sourceString);
+		boolean flag = true;
+		for(String var: vars) {
+			if(hasWhitespaceBefore(sourceString, var) != hasWhitespaceBefore(targetString, var)) {
+				errorLogConsumer.accept("Pre-token whitespace mismatch for key: " + key + "  " + targetString);
+				flag = false;
+			}
+			
+			if(hasWhitespaceAfter(sourceString, var) != hasWhitespaceAfter(targetString, var)) {
+				errorLogConsumer.accept("Post-token whitespace mismatch for key: " + key + "  " + targetString);
+				flag = false;
+			}
+		}
+		
+		return flag;
+	}
+	
+	private static boolean matchesVariableCounting(String key, String sourceString, String targetString, Consumer<String> errorLogConsumer) {
+		List<String> vars = Utils.extractVaribleExpressions(sourceString);
+		boolean flag = true;
+		for(String var: vars) {
+			if(getIndexesOf(sourceString, var).size() != getIndexesOf(targetString, var).size()) {
+				errorLogConsumer.accept("Variable count mismatch for key: " + key + " for token " + var);
+				flag = false;
+			}
+		}
+		
+		return flag;
+	}
+	
+	private static List<Integer> getIndexesOf(String sourceString, String token) {
+		List<Integer> list = new ArrayList<Integer>();
+		
+		int index = sourceString.indexOf(token);
+		while (index >= 0) {
+		    list.add(index);
+		    index = sourceString.indexOf(token, index + 1);
+		}
+		
+		return list;
+	}
+	
+	private static boolean hasWhitespaceBefore(String sourceString, String token) {
+		for(Integer index: getIndexesOf(sourceString, token)) {
+			if(index == 0) {
+				return false;
+			}
+			
+			char charBefore = sourceString.charAt(index-1);
+			return charBefore == ' ';
+		}
+		
+		return false;
+	}
+	
+	private static boolean hasWhitespaceAfter(String sourceString, String token) {
+		for(Integer index: getIndexesOf(sourceString, token)) {
+			if(index+token.length() >= sourceString.length()) {
+				return false;
+			}
+			
+			char charAfter = sourceString.charAt(index+token.length());
+			return charAfter == ' ';
+		}
+		
+		return false;
+	}
+	
+	@FunctionalInterface
+	private interface ImportIntegrityChecker {		
+		boolean validate(String key, String sourceString, String targetString, Consumer<String> errorLogConsumer);
 	}
 
 }
