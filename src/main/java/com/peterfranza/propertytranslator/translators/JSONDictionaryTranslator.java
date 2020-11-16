@@ -1,15 +1,9 @@
 package com.peterfranza.propertytranslator.translators;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Reader;
-import java.io.Writer;
 import java.security.MessageDigest;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Formatter;
@@ -20,15 +14,16 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.TreeSet;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import org.apache.maven.plugin.logging.Log;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.peterfranza.propertytranslator.TranslatorConfig;
 
-public class DictionaryTranslator implements Translator {
+public class JSONDictionaryTranslator implements Translator {
 
+	private Consumer<String> errorLogConsumer;
+	private Consumer<String> infoLogConsumer;
 	private Map<String, TranslationObject> dictionary = new HashMap<String, TranslationObject>();
 
 	private TranslatorConfig config;
@@ -36,9 +31,12 @@ public class DictionaryTranslator implements Translator {
 	private String sourceLanguage;
 
 	@Override
-	public void reconfigure(TranslatorConfig config, String sourceLanguage) {
+	public void reconfigure(TranslatorConfig config, String sourceLanguage, Consumer<String> infoLogConsumer,
+			Consumer<String> errorLogConsumer) {
 		this.config = config;
 		this.sourceLanguage = sourceLanguage;
+		this.infoLogConsumer = infoLogConsumer;
+		this.errorLogConsumer = errorLogConsumer;
 		dictionary = new HashMap<String, TranslationObject>();
 	}
 
@@ -99,16 +97,16 @@ public class DictionaryTranslator implements Translator {
 
 	@Override
 	public void open() throws IOException {
-		dictionary  = new HashMap<String, TranslationObject>();
-		dictionary.putAll(getDictionaryLoaderFor().loadFile(config.dictionary));
+		dictionary = new HashMap<String, TranslationObject>();
+		dictionary.putAll(getDictionaryLoaderFor().loadDictionary(config));
 	}
 
 	@Override
 	public void close() throws IOException {
 		if (dictionary.size() > 0) {
-			getDictionaryLoaderFor().saveFile(config.dictionary, dictionary);
+			getDictionaryLoaderFor().saveDictionary(config, dictionary);
 		}
-		
+
 		dictionary = null;
 	}
 
@@ -148,7 +146,7 @@ public class DictionaryTranslator implements Translator {
 	}
 
 	private DictionaryLoader getDictionaryLoaderFor() {
-		return new JSONDictionaryLoader();
+		return new JSONDictionaryLoader(sourceLanguage, infoLogConsumer, errorLogConsumer);
 	}
 
 	@Override
@@ -196,11 +194,12 @@ public class DictionaryTranslator implements Translator {
 		return Optional.of(s);
 	}
 
-	private interface DictionaryLoader {
+	interface DictionaryLoader {
 
-		Map<String, TranslationObject> loadFile(File masterDictionary) throws IOException;
+		Map<String, TranslationObject> loadDictionary(TranslatorConfig masterDictionary) throws IOException;
 
-		void saveFile(File masterDictionary, Map<String, TranslationObject> dictionary) throws IOException;
+		void saveDictionary(TranslatorConfig masterDictionary, Map<String, TranslationObject> dictionary)
+				throws IOException;
 
 	}
 
@@ -208,39 +207,6 @@ public class DictionaryTranslator implements Translator {
 		String sourceLanguage;
 		String targetLanguage;
 		List<TranslationObject> objects;
-	}
-
-	private class JSONDictionaryLoader implements DictionaryLoader {
-
-		@Override
-		public Map<String, TranslationObject> loadFile(File masterDictionary) throws IOException {
-			if (masterDictionary.exists()) {
-				HashMap<String, TranslationObject> md = new HashMap<>();
-				try (Reader reader = new FileReader(masterDictionary)) {
-					Dictionary d = new Gson().fromJson(reader, Dictionary.class);
-					for (TranslationObject obj : d.objects) {
-						md.put(obj.calculatedKey, obj);
-					}
-				}
-				return md;
-			}
-			return new HashMap<>();
-		}
-
-		@Override
-		public void saveFile(File masterDictionary, Map<String, TranslationObject> dictionary) throws IOException {
-			masterDictionary.getParentFile().mkdirs();
-			try (Writer writer = new FileWriter(masterDictionary)) {
-				Dictionary d = new Dictionary();
-				d.targetLanguage = config.targetLanguage;
-				d.sourceLanguage = sourceLanguage;
-				d.objects = new ArrayList<>(dictionary.values());
-				Collections.sort(d.objects);
-
-				new GsonBuilder().setPrettyPrinting().create().toJson(d, writer);
-			}
-		}
-
 	}
 
 	@Override
@@ -327,6 +293,5 @@ public class DictionaryTranslator implements Translator {
 			super.store(new StripCommentsStream(out), null);
 		}
 	}
-
 
 }

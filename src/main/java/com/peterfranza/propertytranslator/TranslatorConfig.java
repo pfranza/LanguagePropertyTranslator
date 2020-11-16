@@ -15,6 +15,9 @@ public class TranslatorConfig {
 	@Parameter(required = false)
 	public File dictionary;
 
+	@Parameter(alias = "evolution", required = false)
+	public TranslatorDictionaryEvolutionConfiguration[] evolutions;
+
 	@Parameter(required = false, defaultValue = "true")
 	public boolean omitMissingKeys = true;
 
@@ -24,10 +27,7 @@ public class TranslatorConfig {
 	@Override
 	public String toString() {
 		return "TranslatorConfig [type=" + type + ", targetLanguage=" + targetLanguage + ", dictionary=" + dictionary
-				+ ", omitMissingKeys=" + omitMissingKeys
-				+ ", missingKeyDefault=" + missingKeyDefault + "]";
+				+ ", omitMissingKeys=" + omitMissingKeys + ", missingKeyDefault=" + missingKeyDefault + "]";
 	}
 
-	
-	
 }

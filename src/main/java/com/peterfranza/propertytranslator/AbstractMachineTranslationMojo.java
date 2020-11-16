@@ -11,7 +11,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import com.peterfranza.propertytranslator.TranslationDeltaExporter.DetectHtml;
-import com.peterfranza.propertytranslator.translators.Translator;
+import com.peterfranza.propertytranslator.translators.TranslationType;
 
 public abstract class AbstractMachineTranslationMojo extends AbstractMojo {
 
@@ -29,7 +29,7 @@ public abstract class AbstractMachineTranslationMojo extends AbstractMojo {
 		Arrays.asList(translators).stream().forEach(PropertyTranslationGenerator.throwingConsumerWrapper(t -> {
 			if (t.type == TranslatorGeneratorType.DICTIONARY
 					&& t.targetLanguage.equalsIgnoreCase(deltaTargetLanguage)) {
-				t.type.getTranslator().reconfigure(t, sourceLanguage);
+				t.type.getTranslator().reconfigure(t, sourceLanguage, getLog()::info, getLog()::error);
 				t.type.getTranslator().open();
 				t.type.getTranslator().withMissingKeys((key, phrase) -> {
 
@@ -46,7 +46,7 @@ public abstract class AbstractMachineTranslationMojo extends AbstractMojo {
 												+ " does not contain all the variables " + vars + " ... skipping");
 										return;
 									} else {
-										t.type.getTranslator().setKey(key, p.get(), Translator.TranslationType.MACHINE);
+										t.type.getTranslator().setKey(key, p.get(), TranslationType.MACHINE);
 									}
 								}
 

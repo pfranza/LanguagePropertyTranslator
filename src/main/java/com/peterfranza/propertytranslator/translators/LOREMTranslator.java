@@ -2,6 +2,7 @@ package com.peterfranza.propertytranslator.translators;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import org.apache.maven.plugin.logging.Log;
 
@@ -65,7 +66,8 @@ public class LOREMTranslator implements Translator {
 	}
 
 	@Override
-	public void reconfigure(TranslatorConfig config, String sourceLanguage) {
+	public void reconfigure(TranslatorConfig config, String sourceLanguage, Consumer<String> infoLogConsumer,
+			Consumer<String> errorLogConsumer) {
 		this.sourceLanguage = sourceLanguage;
 	}
 

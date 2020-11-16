@@ -2,6 +2,7 @@ package com.peterfranza.propertytranslator;
 
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.io.ObjectInputStream.GetField;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
@@ -17,10 +18,6 @@ public class TranslationDeltaExporter extends AbstractMojo {
 
 	public enum OutputMode {
 		TRUNCATE, APPEND
-	}
-
-	public enum HTMLDetection {
-		SKIP, PROCESS
 	}
 
 	@Parameter(required = true)
@@ -51,29 +48,28 @@ public class TranslationDeltaExporter extends AbstractMojo {
 			PrintStream writetoOuput = new PrintStream(
 					new FileOutputStream(deltaOutputFile, outputMode == OutputMode.APPEND));
 
-			Arrays.asList(translators).stream()
-					.forEach(PropertyTranslationGenerator.throwingConsumerWrapper(t -> {
-						if (t.type == TranslatorGeneratorType.DICTIONARY
-								&& t.targetLanguage.equalsIgnoreCase(deltaTargetLanguage)) {
-							getLog().info(t.toString());
-							t.type.getTranslator().reconfigure(t, sourceLanguage);
-							t.type.getTranslator().open();
+			Arrays.asList(translators).stream().forEach(PropertyTranslationGenerator.throwingConsumerWrapper(t -> {
+				if (t.type == TranslatorGeneratorType.DICTIONARY
+						&& t.targetLanguage.equalsIgnoreCase(deltaTargetLanguage)) {
+					getLog().info(t.toString());
+					t.type.getTranslator().reconfigure(t, sourceLanguage, getLog()::info, getLog()::error);
+					t.type.getTranslator().open();
 
-							t.type.getTranslator().printStats(getLog());
-							System.out.println("Exporting " + t.targetLanguage + " to " + deltaOutputFile);
+					t.type.getTranslator().printStats(getLog());
+					getLog().info("Exporting " + t.targetLanguage + " to " + deltaOutputFile);
 
-							t.type.getTranslator().withMissingKeys((key, phrase) -> {
-								boolean isHtml = DetectHtml.isHtml(phrase);
+					t.type.getTranslator().withMissingKeys((key, phrase) -> {
+						boolean isHtml = DetectHtml.isHtml(phrase);
 
-								if (isHtml && htmlDetection == HTMLDetection.SKIP)
-									return;
+						if (isHtml && htmlDetection == HTMLDetection.SKIP)
+							return;
 
-								writetoOuput.println(key + delimiter + phrase);
-							});
+						writetoOuput.println(key + delimiter + phrase);
+					});
 
-							t.type.getTranslator().close();
-						}
-					}));
+					t.type.getTranslator().close();
+				}
+			}));
 
 			writetoOuput.close();
 

@@ -34,8 +34,8 @@ import org.reflections.scanners.ResourcesScanner;
 import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
+import com.peterfranza.propertytranslator.translators.JSONDictionaryTranslator.CleanProperties;
 import com.peterfranza.propertytranslator.translators.TranslationStatusSummary;
-import com.peterfranza.propertytranslator.translators.DictionaryTranslator.CleanProperties;
 
 @Mojo(name = "generate-languages", defaultPhase = LifecyclePhase.GENERATE_RESOURCES)
 public class PropertyTranslationGenerator extends AbstractMojo {
@@ -114,10 +114,10 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 			List<TranslationStatusSummary> summary = new ArrayList<>();
 
 			Arrays.asList(translators).stream().forEach(throwingConsumerWrapper(t -> {
-				
+
 				getLog().info(t.toString());
-				
-				t.type.getTranslator().reconfigure(t, sourceLanguage);
+
+				t.type.getTranslator().reconfigure(t, sourceLanguage, getLog()::info, getLog()::error);
 				t.type.getTranslator().open();
 
 				workItems.stream().forEach(throwingConsumerWrapper(workItem -> {

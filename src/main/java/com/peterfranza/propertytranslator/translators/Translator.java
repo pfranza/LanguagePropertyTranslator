@@ -2,6 +2,7 @@ package com.peterfranza.propertytranslator.translators;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import org.apache.maven.plugin.logging.Log;
 
@@ -9,15 +10,12 @@ import com.peterfranza.propertytranslator.TranslatorConfig;
 
 public interface Translator {
 
-	public enum TranslationType {
-		MACHINE, SERVICE
-	}
-
 	String getSourceLanguage();
 
 	String translate(String string) throws Exception;
 
-	void reconfigure(TranslatorConfig config, String sourceLanguage);
+	void reconfigure(TranslatorConfig config, String sourceLanguage, Consumer<String> infoLogConsumer,
+			Consumer<String> errorLogConsumer);
 
 	void open() throws Exception;
 
