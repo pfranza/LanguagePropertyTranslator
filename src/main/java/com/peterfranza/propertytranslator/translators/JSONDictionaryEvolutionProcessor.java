@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -19,15 +21,73 @@ import com.peterfranza.propertytranslator.translators.JSONDictionaryTranslator.T
 
 public class JSONDictionaryEvolutionProcessor {
 
+	private static final class EvolutionFile implements Comparable<EvolutionFile> {
+		
+		private String filename;
+		private TranslatorDictionaryEvolutionConfiguration config;
+		
+		
+		
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((filename == null) ? 0 : filename.hashCode());
+			return result;
+		}
+
+
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			EvolutionFile other = (EvolutionFile) obj;
+			if (filename == null) {
+				if (other.filename != null)
+					return false;
+			} else if (!filename.equals(other.filename))
+				return false;
+			return true;
+		}
+
+
+
+		@Override
+		public int compareTo(EvolutionFile o) {
+			return filename.compareTo(o.filename);
+		}
+		
+		private File getAsFile() {
+			File root = new File(config.fileset.getDirectory());
+			return new File(root, filename);
+		}
+		
+	}
+	
 	public static void process(List<TranslatorDictionaryEvolutionConfiguration> configs,
 			Function<String, Optional<String>> sourcePhraseLookup, Consumer<TranslationObject> consumer,
 			Consumer<String> infoLogConsumer, Consumer<String> errorLogConsumer) throws IOException {
 		
-		File root = new File(config.fileset.getDirectory());
-		for(String f: Arrays.asList( new FileSetManager().getIncludedFiles(config.fileset))) {
-			File inputFile = new File(root, f);
-			infoLogConsumer.accept("Evolving '" + inputFile.getAbsolutePath() + "' " + config);
-			TranslationPropertyFileReader.read(inputFile, config.delimiter, (e) -> {
+		Set<EvolutionFile> files = new TreeSet<EvolutionFile>();
+		
+		for(TranslatorDictionaryEvolutionConfiguration c: configs) {
+			for(String f: Arrays.asList( new FileSetManager().getIncludedFiles(c.fileset))) {
+				EvolutionFile ef = new EvolutionFile();
+				ef.config = c;
+				ef.filename = f;
+				files.add(ef);
+			}
+		}
+		
+		
+		for(EvolutionFile f: files) {
+			infoLogConsumer.accept("Evolving '" + f.getAsFile().getAbsolutePath() + "' " + f.config);
+			TranslationPropertyFileReader.read(f.getAsFile(), f.config.delimiter, (e) -> {
 				String key = e.getKey();
 				String value = e.getValue();
 
@@ -35,9 +95,9 @@ public class JSONDictionaryEvolutionProcessor {
 				obj.sourcePhrase = sourcePhraseLookup.apply(key).orElse(null);
 				obj.calculatedKey = key;
 				obj.targetPhrase = value;
-				obj.type = config.translationType;
+				obj.type = f.config.translationType;
 
-				if (config.missingKey == OnMissingKey.SKIP && obj.sourcePhrase != null) {
+				if (f.config.missingKey == OnMissingKey.SKIP && obj.sourcePhrase != null) {
 					return;
 				}
 
@@ -45,7 +105,7 @@ public class JSONDictionaryEvolutionProcessor {
 				if (sourcePhrase.isPresent()) {
 					boolean valid = TranslationInputValidator.checkValidity(key, sourcePhrase.get(), value,
 							errorLogConsumer);
-					if (!valid && config.errorKey == OnErrorKey.SKIP) {
+					if (!valid && f.config.errorKey == OnErrorKey.SKIP) {
 						errorLogConsumer.accept("Errors found skipping key " + key);
 						return;
 					}
@@ -53,7 +113,6 @@ public class JSONDictionaryEvolutionProcessor {
 				consumer.accept(obj);
 			});
 		}
-		
 			
 		
 	}
