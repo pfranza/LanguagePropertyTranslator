@@ -16,16 +16,10 @@ public class TranslatorDictionaryEvolutionConfiguration {
 	@Parameter(property = "delimiter", alias = "delimiter", required = true, defaultValue = "|")
 	public String delimiter = "|";
 
-	@Parameter(property = "missingKey", alias = "missingKey", required = true, defaultValue = "HALT")
-	public OnMissingKey missingKey = OnMissingKey.HALT;
-
-	@Parameter(property = "errorKey", alias = "errorKey", required = true, defaultValue = "SKIP")
-	public OnErrorKey errorKey = OnErrorKey.SKIP;
-
 	@Override
 	public String toString() {
 		return "TranslatorDictionaryEvolutionConfiguration [translationType=" + translationType + ", delimiter="
-				+ delimiter + ", missingKey=" + missingKey + ", errorKey=" + errorKey + "]";
+				+ delimiter + "]";
 	}
 
 	

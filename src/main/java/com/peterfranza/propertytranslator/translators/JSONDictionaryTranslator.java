@@ -52,6 +52,9 @@ public class JSONDictionaryTranslator implements Translator {
 		String key = calculateKey(sourcePhrase);
 		TranslationObject target = dictionary.get(key);
 		if (target != null) {
+			if(target.sourcePhrase == null || target.sourcePhrase.trim().isEmpty())
+				target.sourcePhrase = sourcePhrase;
+
 			if (target.targetPhrase != null && !target.targetPhrase.trim().isEmpty())
 				return target.targetPhrase;
 		}
