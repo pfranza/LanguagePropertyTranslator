@@ -18,6 +18,7 @@ import java.util.function.Consumer;
 
 import org.apache.maven.plugin.logging.Log;
 
+import com.google.gson.annotations.Expose;
 import com.peterfranza.propertytranslator.TranslatorConfig;
 
 public class JSONDictionaryTranslator implements Translator {
@@ -50,12 +51,14 @@ public class JSONDictionaryTranslator implements Translator {
 			return "";
 
 		String key = calculateKey(sourcePhrase);
+		
 		TranslationObject target = dictionary.get(key);
 		if (target != null) {
 			if(target.sourcePhrase == null || target.sourcePhrase.trim().isEmpty())
 				target.sourcePhrase = sourcePhrase;
 
 			if (target.targetPhrase != null && !target.targetPhrase.trim().isEmpty())
+				target.timesUsed++;
 				return target.targetPhrase;
 		}
 
@@ -125,6 +128,14 @@ public class JSONDictionaryTranslator implements Translator {
 		crypt.update(sourcePhrase.getBytes());
 		return byteToHex(crypt.digest());
 	}
+	
+	private static String calculateCaseKey(String sourcePhrase) throws Exception {
+		sourcePhrase = sourcePhrase.trim();
+		MessageDigest crypt = MessageDigest.getInstance("SHA-1");
+		crypt.reset();
+		crypt.update(sourcePhrase.getBytes());
+		return byteToHex(crypt.digest());
+	}
 
 	private static String byteToHex(byte[] digest) {
 		Formatter formatter = new Formatter();
@@ -137,10 +148,19 @@ public class JSONDictionaryTranslator implements Translator {
 	}
 
 	public static class TranslationObject implements Comparable<TranslationObject> {
+		@Expose
 		String calculatedKey;
+		
+		@Expose
 		String sourcePhrase;
+		
+		@Expose
 		String targetPhrase = "";
+		
+		@Expose
 		TranslationType type = TranslationType.MACHINE;
+		
+		int timesUsed = 0;
 
 		@Override
 		public int compareTo(TranslationObject o) {
@@ -205,10 +225,15 @@ public class JSONDictionaryTranslator implements Translator {
 				throws IOException;
 
 	}
-
+	
 	static class Dictionary {
+		@Expose
 		String sourceLanguage;
+		
+		@Expose
 		String targetLanguage;
+
+		@Expose
 		List<TranslationObject> objects;
 	}
 

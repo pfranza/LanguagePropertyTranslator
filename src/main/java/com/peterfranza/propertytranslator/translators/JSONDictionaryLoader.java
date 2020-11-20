@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import com.google.gson.GsonBuilder;
 import com.peterfranza.propertytranslator.TranslatorConfig;
@@ -21,14 +22,14 @@ public class JSONDictionaryLoader implements DictionaryLoader {
 
 	private String sourceLanguage;
 	private Consumer<String> errorLogConsumer;
-	private Consumer<String> infoLogConsumer;
-
 	public JSONDictionaryLoader(String sourceLanguage, Consumer<String> infoLogConsumer,
 			Consumer<String> errorLogConsumer) {
 		this.sourceLanguage = sourceLanguage;
 		this.infoLogConsumer = infoLogConsumer;
 		this.errorLogConsumer = errorLogConsumer;
 	}
+
+	private Consumer<String> infoLogConsumer;
 
 	@Override
 	public Map<String, TranslationObject> loadDictionary(TranslatorConfig config) throws IOException {
@@ -62,12 +63,17 @@ public class JSONDictionaryLoader implements DictionaryLoader {
 				Dictionary d = new Dictionary();
 				d.targetLanguage = config.targetLanguage;
 				d.sourceLanguage = sourceLanguage;
-				d.objects = new ArrayList<>(dictionary.values());
+				d.objects = new ArrayList<>(dictionary.values().stream().filter(JSONDictionaryLoader::isCompleteRecord).collect(Collectors.toList()));
 				Collections.sort(d.objects);
 
-				new GsonBuilder().setPrettyPrinting().create().toJson(d, writer);
+				new GsonBuilder().excludeFieldsWithoutExposeAnnotation()
+					.setPrettyPrinting().create().toJson(d, writer);
 			}
 		}
 	}
 
+	private static boolean isCompleteRecord(TranslationObject rec) {
+		return rec.sourcePhrase != null && rec.targetPhrase != null && rec.sourcePhrase.trim().length() > 0 && rec.targetPhrase.trim().length() > 0 ;
+	}
+	
 }
