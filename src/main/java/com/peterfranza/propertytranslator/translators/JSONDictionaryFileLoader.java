@@ -7,6 +7,7 @@ import java.io.Reader;
 import java.util.function.Consumer;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.peterfranza.propertytranslator.translators.JSONDictionaryTranslator.Dictionary;
 import com.peterfranza.propertytranslator.translators.JSONDictionaryTranslator.TranslationObject;
 
@@ -17,12 +18,17 @@ public class JSONDictionaryFileLoader {
 		if (masterDictionary != null && masterDictionary.exists()) {
 			infoLogConsumer.accept("Reading dictionary from " + masterDictionary.getAbsolutePath());
 			try (Reader reader = new FileReader(masterDictionary)) {
-				Dictionary d = new Gson().fromJson(reader, Dictionary.class);
+				Dictionary d = createGson().fromJson(reader, Dictionary.class);
 				for (TranslationObject obj : d.objects) {
 					consumer.accept(obj);
 				}
 			}
 		}
+	}
+
+	public static Gson createGson() {
+		return new GsonBuilder().disableHtmlEscaping().excludeFieldsWithoutExposeAnnotation()
+				.setPrettyPrinting().create();
 	}
 
 }

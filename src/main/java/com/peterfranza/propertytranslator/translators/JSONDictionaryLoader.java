@@ -1,8 +1,11 @@
 package com.peterfranza.propertytranslator.translators;
 
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,7 +15,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import com.google.gson.GsonBuilder;
+import com.peterfranza.propertytranslator.PropertyTranslationGenerator;
 import com.peterfranza.propertytranslator.TranslatorConfig;
 import com.peterfranza.propertytranslator.translators.JSONDictionaryTranslator.Dictionary;
 import com.peterfranza.propertytranslator.translators.JSONDictionaryTranslator.DictionaryLoader;
@@ -58,16 +61,15 @@ public class JSONDictionaryLoader implements DictionaryLoader {
 	@Override
 	public void saveDictionary(TranslatorConfig config, Map<String, TranslationObject> dictionary) throws IOException {
 		if (config.dictionary != null) {
-			config.dictionary.getParentFile().mkdirs();
-			try (Writer writer = new FileWriter(config.dictionary)) {
+			config.dictionary.getParentFile().mkdirs();		 
+			try (Writer writer = new OutputStreamWriter(new FileOutputStream(config.dictionary), PropertyTranslationGenerator.UTF8)) {
 				Dictionary d = new Dictionary();
 				d.targetLanguage = config.targetLanguage;
 				d.sourceLanguage = sourceLanguage;
 				d.objects = new ArrayList<>(dictionary.values().stream().filter(JSONDictionaryLoader::isCompleteRecord).collect(Collectors.toList()));
 				Collections.sort(d.objects);
 
-				new GsonBuilder().excludeFieldsWithoutExposeAnnotation()
-					.setPrettyPrinting().create().toJson(d, writer);
+				JSONDictionaryFileLoader.createGson().toJson(d,writer);
 			}
 		}
 	}

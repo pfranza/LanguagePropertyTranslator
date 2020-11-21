@@ -2,6 +2,7 @@ package com.peterfranza.propertytranslator;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
@@ -11,7 +12,7 @@ public class TranslationPropertyFileReader {
 
 	public static void read(File deltaInputFile, String delimiter, Consumer<Entry<String, String>> entryConsumer)
 			throws IOException {
-		try (Stream<String> stream = Files.lines(deltaInputFile.toPath())) {
+		try (Stream<String> stream = Files.lines(deltaInputFile.toPath(), PropertyTranslationGenerator.UTF8)) {
 			stream.forEach((line) -> {
 
 				if (!line.isEmpty()) {

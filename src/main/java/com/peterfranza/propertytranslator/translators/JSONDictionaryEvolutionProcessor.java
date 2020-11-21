@@ -97,20 +97,6 @@ public class JSONDictionaryEvolutionProcessor {
 				obj.targetPhrase = value;
 				obj.type = f.config.translationType;
 
-//				if (f.config.missingKey == OnMissingKey.SKIP && obj.sourcePhrase != null) {
-//					return;
-//				}
-
-//				Optional<String> sourcePhrase = sourcePhraseLookup.apply(key);
-//				if (sourcePhrase.isPresent()) {
-//					boolean valid = TranslationInputValidator.checkValidity(key, sourcePhrase.get(), value,
-//							errorLogConsumer);
-//					if (!valid && f.config.errorKey == OnErrorKey.SKIP) {
-//						errorLogConsumer.accept("Errors found skipping key " + key);
-//						return;
-//					}	
-//				}
-				
 				consumer.accept(obj);
 			});
 		}

@@ -6,8 +6,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -40,6 +42,8 @@ import com.peterfranza.propertytranslator.translators.TranslationStatusSummary;
 @Mojo(name = "generate-languages", defaultPhase = LifecyclePhase.GENERATE_RESOURCES)
 public class PropertyTranslationGenerator extends AbstractMojo {
 
+	public static final Charset UTF8 = StandardCharsets.UTF_8;
+	
 	@Parameter(required = true)
 	private FileSet fileset;
 
@@ -148,13 +152,12 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 		outputRoot.mkdirs();
 		File outFile = workItem.getOutputFile(outputRoot, config);
 		outFile.getParentFile().mkdirs();
-
-		try (FileOutputStream fout = new FileOutputStream(outFile)) {
-			generateLanguagePropertyFiles(config, workItem.getProperties(), fout);
+		try (Writer fstream = new OutputStreamWriter(new FileOutputStream(outFile), UTF8)) {
+			generateLanguagePropertyFiles(config, workItem.getProperties(), fstream);
 		}
 	}
 
-	private void generateLanguagePropertyFiles(TranslatorConfig config, Properties source, OutputStream output)
+	private void generateLanguagePropertyFiles(TranslatorConfig config, Properties source, Writer output)
 			throws Exception {
 		Properties target = new CleanProperties();
 		for (Entry<Object, Object> entry : source.entrySet()) {
