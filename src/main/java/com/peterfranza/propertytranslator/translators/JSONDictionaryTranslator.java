@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Formatter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -18,14 +17,14 @@ import java.util.function.Consumer;
 
 import org.apache.maven.plugin.logging.Log;
 
-import com.google.gson.annotations.Expose;
 import com.peterfranza.propertytranslator.TranslatorConfig;
+import com.peterfranza.propertytranslator.translators.JSONDictionary.TranslationObject;
 
 public class JSONDictionaryTranslator implements Translator {
 
 	private Consumer<String> errorLogConsumer;
 	private Consumer<String> infoLogConsumer;
-	private Map<String, TranslationObject> dictionary = new HashMap<String, TranslationObject>();
+	private JSONDictionary dictionary = new JSONDictionary();
 
 	private TranslatorConfig config;
 
@@ -38,7 +37,7 @@ public class JSONDictionaryTranslator implements Translator {
 		this.sourceLanguage = sourceLanguage;
 		this.infoLogConsumer = infoLogConsumer;
 		this.errorLogConsumer = errorLogConsumer;
-		dictionary = new HashMap<String, TranslationObject>();
+		dictionary = new JSONDictionary();
 	}
 
 	@Override
@@ -66,7 +65,7 @@ public class JSONDictionaryTranslator implements Translator {
 			target = new TranslationObject();
 			target.calculatedKey = key;
 			target.sourcePhrase = sourcePhrase;
-			dictionary.put(key, target);
+			dictionary.add(target);
 		}
 
 		if (config.omitMissingKeys)
@@ -103,13 +102,12 @@ public class JSONDictionaryTranslator implements Translator {
 
 	@Override
 	public void open() throws IOException {
-		dictionary = new HashMap<String, TranslationObject>();
-		dictionary.putAll(getDictionaryLoaderFor().loadDictionary(config));
+		dictionary = getDictionaryLoaderFor().loadDictionary(config);
 	}
 
 	@Override
 	public void close() throws IOException {
-		if (dictionary.size() > 0) {
+		if (dictionary.objects.size() > 0) {
 			getDictionaryLoaderFor().saveDictionary(config, dictionary);
 		}
 
@@ -147,26 +145,7 @@ public class JSONDictionaryTranslator implements Translator {
 		return result;
 	}
 
-	public static class TranslationObject implements Comparable<TranslationObject> {
-		@Expose
-		String calculatedKey;
-		
-		@Expose
-		String sourcePhrase;
-		
-		@Expose
-		String targetPhrase = "";
-		
-		@Expose
-		TranslationType type = TranslationType.MACHINE;
-		
-		int timesUsed = 0;
-
-		@Override
-		public int compareTo(TranslationObject o) {
-			return calculatedKey.compareTo(o.calculatedKey);
-		}
-	}
+	
 
 	private DictionaryLoader getDictionaryLoaderFor() {
 		return new JSONDictionaryLoader(sourceLanguage, infoLogConsumer, errorLogConsumer);
@@ -178,10 +157,10 @@ public class JSONDictionaryTranslator implements Translator {
 		if (log == null)
 			return;
 
-		long total = dictionary.size();
+		long total = dictionary.objects.size();
 		long missing = 0;
 
-		for (TranslationObject t : dictionary.values()) {
+		for (TranslationObject t : dictionary.objects) {
 			if (t.targetPhrase == null || t.targetPhrase.trim().isEmpty())
 				missing += 1;
 		}
@@ -200,7 +179,7 @@ public class JSONDictionaryTranslator implements Translator {
 		long missing = 0;
 		long machine = 0;
 
-		for (TranslationObject t : dictionary.values()) {
+		for (TranslationObject t : dictionary.objects) {
 			if (t.targetPhrase == null || t.targetPhrase.trim().isEmpty())
 				missing += 1;
 
@@ -210,7 +189,7 @@ public class JSONDictionaryTranslator implements Translator {
 
 		TranslationStatusSummary s = new TranslationStatusSummary();
 		s.setTargetLanguage(config.targetLanguage);
-		s.setTotalKeys(dictionary.size());
+		s.setTotalKeys(dictionary.objects.size());
 		s.setMissingKeys(missing);
 		s.setMachineKeys(machine);
 
@@ -219,27 +198,16 @@ public class JSONDictionaryTranslator implements Translator {
 
 	interface DictionaryLoader {
 
-		Map<String, TranslationObject> loadDictionary(TranslatorConfig masterDictionary) throws IOException;
+		JSONDictionary loadDictionary(TranslatorConfig masterDictionary) throws IOException;
 
-		void saveDictionary(TranslatorConfig masterDictionary, Map<String, TranslationObject> dictionary)
+		void saveDictionary(TranslatorConfig masterDictionary, JSONDictionary dictionary)
 				throws IOException;
 
 	}
 	
-	static class Dictionary {
-		@Expose
-		String sourceLanguage;
-		
-		@Expose
-		String targetLanguage;
-
-		@Expose
-		List<TranslationObject> objects;
-	}
-
 	@Override
 	public void withMissingKeys(BiConsumer<String, String> consumer) {
-		for (TranslationObject t : dictionary.values()) {
+		for (TranslationObject t : dictionary.objects) {
 			if (t.targetPhrase == null || t.targetPhrase.trim().isEmpty()) {
 				consumer.accept(t.calculatedKey, t.sourcePhrase);
 			}

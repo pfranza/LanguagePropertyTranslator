@@ -8,22 +8,20 @@ import java.util.function.Consumer;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.peterfranza.propertytranslator.translators.JSONDictionaryTranslator.Dictionary;
-import com.peterfranza.propertytranslator.translators.JSONDictionaryTranslator.TranslationObject;
 
 public class JSONDictionaryFileLoader {
 
-	public static void process(File masterDictionary, Consumer<TranslationObject> consumer,
+	public static JSONDictionary process(File masterDictionary,
 			Consumer<String> infoLogConsumer, Consumer<String> errorLogConsumer) throws IOException {
 		if (masterDictionary != null && masterDictionary.exists()) {
 			infoLogConsumer.accept("Reading dictionary from " + masterDictionary.getAbsolutePath());
 			try (Reader reader = new FileReader(masterDictionary)) {
-				Dictionary d = createGson().fromJson(reader, Dictionary.class);
-				for (TranslationObject obj : d.objects) {
-					consumer.accept(obj);
-				}
+				JSONDictionary d = createGson().fromJson(reader, JSONDictionary.class);
+				return d;
 			}
 		}
+		
+		return new JSONDictionary();
 	}
 
 	public static Gson createGson() {

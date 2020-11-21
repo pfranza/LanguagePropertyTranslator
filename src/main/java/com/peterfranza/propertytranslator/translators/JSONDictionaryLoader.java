@@ -1,25 +1,19 @@
 package com.peterfranza.propertytranslator.translators;
 
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.peterfranza.propertytranslator.PropertyTranslationGenerator;
 import com.peterfranza.propertytranslator.TranslatorConfig;
-import com.peterfranza.propertytranslator.translators.JSONDictionaryTranslator.Dictionary;
+import com.peterfranza.propertytranslator.translators.JSONDictionary.TranslationObject;
 import com.peterfranza.propertytranslator.translators.JSONDictionaryTranslator.DictionaryLoader;
-import com.peterfranza.propertytranslator.translators.JSONDictionaryTranslator.TranslationObject;
 
 public class JSONDictionaryLoader implements DictionaryLoader {
 
@@ -35,39 +29,46 @@ public class JSONDictionaryLoader implements DictionaryLoader {
 	private Consumer<String> infoLogConsumer;
 
 	@Override
-	public Map<String, TranslationObject> loadDictionary(TranslatorConfig config) throws IOException {
-		HashMap<String, TranslationObject> md = new HashMap<>();
+	public JSONDictionary loadDictionary(TranslatorConfig config) throws IOException {
+		JSONDictionary d = new JSONDictionary();
+		
 		if (config.dictionary != null) {
-			JSONDictionaryFileLoader.process(config.dictionary, (obj) -> {
-				md.put(obj.calculatedKey, obj);
-			}, infoLogConsumer, errorLogConsumer);
+			d = JSONDictionaryFileLoader.process(config.dictionary, infoLogConsumer, errorLogConsumer);
 		}
 
+		loadEvolutions(config, d);
+		
+		d.sourceLanguage = sourceLanguage;
+		d.targetLanguage = config.targetLanguage;
+		return d;
+	}
+
+	private void loadEvolutions(TranslatorConfig config, JSONDictionary d) throws IOException {
 		if (config.evolutions != null && config.evolutions.length > 0) {
 			JSONDictionaryEvolutionProcessor.process(Arrays.asList(config.evolutions), (key) -> {
-				TranslationObject v = md.get(key);
+				TranslationObject v = d.get(key);
 				if (v != null) {
 					return Optional.ofNullable(v.sourcePhrase);
 				}
 
 				return Optional.empty();
 			}, (obj) -> {
-				md.put(obj.calculatedKey, obj);
-			}, infoLogConsumer, errorLogConsumer);
+				d.add(obj);
+			}, (e) -> {return !d.containsSource(e);},
+			d.sources::add, infoLogConsumer, errorLogConsumer);
 		}
-		return md;
 	}
 
 	@Override
-	public void saveDictionary(TranslatorConfig config, Map<String, TranslationObject> dictionary) throws IOException {
+	public void saveDictionary(TranslatorConfig config, JSONDictionary dictionary) throws IOException {
 		if (config.dictionary != null) {
 			config.dictionary.getParentFile().mkdirs();		 
 			try (Writer writer = new OutputStreamWriter(new FileOutputStream(config.dictionary), PropertyTranslationGenerator.UTF8)) {
-				Dictionary d = new Dictionary();
+				JSONDictionary d = new JSONDictionary();
 				d.targetLanguage = config.targetLanguage;
 				d.sourceLanguage = sourceLanguage;
-				d.objects = new ArrayList<>(dictionary.values().stream().filter(JSONDictionaryLoader::isCompleteRecord).collect(Collectors.toList()));
-				Collections.sort(d.objects);
+				d.objects = new TreeSet<>(dictionary.objects.stream().filter(JSONDictionaryLoader::isCompleteRecord).collect(Collectors.toList()));
+				d.sources = dictionary.sources;
 
 				JSONDictionaryFileLoader.createGson().toJson(d,writer);
 			}

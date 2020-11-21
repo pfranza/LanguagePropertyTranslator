@@ -3,6 +3,7 @@ package com.peterfranza.propertytranslator.translators;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -12,12 +13,11 @@ import java.util.function.Function;
 
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 
-import com.peterfranza.propertytranslator.OnErrorKey;
-import com.peterfranza.propertytranslator.OnMissingKey;
-import com.peterfranza.propertytranslator.TranslationInputValidator;
 import com.peterfranza.propertytranslator.TranslationPropertyFileReader;
 import com.peterfranza.propertytranslator.TranslatorDictionaryEvolutionConfiguration;
-import com.peterfranza.propertytranslator.translators.JSONDictionaryTranslator.TranslationObject;
+import com.peterfranza.propertytranslator.Utils;
+import com.peterfranza.propertytranslator.translators.JSONDictionary.TranslationEvolutionSource;
+import com.peterfranza.propertytranslator.translators.JSONDictionary.TranslationObject;
 
 public class JSONDictionaryEvolutionProcessor {
 
@@ -71,6 +71,8 @@ public class JSONDictionaryEvolutionProcessor {
 	
 	public static void process(List<TranslatorDictionaryEvolutionConfiguration> configs,
 			Function<String, Optional<String>> sourcePhraseLookup, Consumer<TranslationObject> consumer,
+			Function<TranslationEvolutionSource, Boolean> allowProcessSource, 
+			Consumer<TranslationEvolutionSource> fileConsumer,
 			Consumer<String> infoLogConsumer, Consumer<String> errorLogConsumer) throws IOException {
 		
 		Set<EvolutionFile> files = new TreeSet<EvolutionFile>();
@@ -86,19 +88,35 @@ public class JSONDictionaryEvolutionProcessor {
 		
 		
 		for(EvolutionFile f: files) {
-			infoLogConsumer.accept("Evolving '" + f.getAsFile().getAbsolutePath() + "' " + f.config);
-			TranslationPropertyFileReader.read(f.getAsFile(), f.config.delimiter, (e) -> {
-				String key = e.getKey();
-				String value = e.getValue();
+			try {
+				TranslationEvolutionSource src = new TranslationEvolutionSource();
+				src.filename = f.filename;
+				src.checksum = Utils.checksum(f.getAsFile());
+				src.date = new Date();
+				
+				if(allowProcessSource.apply(src)) {
+					infoLogConsumer.accept("Evolving '" + f.getAsFile().getAbsolutePath() + "' " + f.config);
+					TranslationPropertyFileReader.read(f.getAsFile(), f.config.delimiter, (e) -> {
+						String key = e.getKey();
+						String value = e.getValue();
 
-				TranslationObject obj = new TranslationObject();
-				obj.sourcePhrase = sourcePhraseLookup.apply(key).orElse(null);
-				obj.calculatedKey = key;
-				obj.targetPhrase = value;
-				obj.type = f.config.translationType;
+						TranslationObject obj = new TranslationObject();
+						obj.sourcePhrase = sourcePhraseLookup.apply(key).orElse(null);
+						obj.calculatedKey = key;
+						obj.targetPhrase = value;
+						obj.type = f.config.translationType;
 
-				consumer.accept(obj);
-			});
+						consumer.accept(obj);
+					});
+
+					fileConsumer.accept(src);
+				} else {
+					infoLogConsumer.accept("Skipping " + f.getAsFile().getAbsolutePath());
+				}
+			} catch(Exception e) {
+				throw new RuntimeException(e);
+			}
+
 		}
 			
 		
