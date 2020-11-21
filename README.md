@@ -10,7 +10,7 @@ Maven Configuration
 	<plugin>
                 <groupId>com.peterfranza</groupId>
 		<artifactId>PropertyTranslator</artifactId>
-		<version>1.3.0</version>
+		<version>1.3.9</version>
 		<executions>
                     <execution>
                         <phase>generate-resources</phase>
