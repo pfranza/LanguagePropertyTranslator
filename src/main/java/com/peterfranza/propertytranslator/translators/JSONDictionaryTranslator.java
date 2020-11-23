@@ -7,8 +7,6 @@ import java.security.MessageDigest;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Formatter;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.TreeSet;
@@ -161,8 +159,15 @@ public class JSONDictionaryTranslator implements Translator {
 		long missing = 0;
 
 		for (TranslationObject t : dictionary.objects) {
-			if (t.targetPhrase == null || t.targetPhrase.trim().isEmpty())
+			
+			if(t.sourcePhrase == null || t.sourcePhrase.trim().length() == 0) {
+				continue;
+			}
+			
+			if (t.targetPhrase == null || t.targetPhrase.trim().isEmpty()) {
+				log.info("Missing " + t.calculatedKey + " | " + t.sourcePhrase);
 				missing += 1;
+			}
 		}
 
 		if (missing > 0) {
@@ -180,11 +185,18 @@ public class JSONDictionaryTranslator implements Translator {
 		long machine = 0;
 
 		for (TranslationObject t : dictionary.objects) {
-			if (t.targetPhrase == null || t.targetPhrase.trim().isEmpty())
+			
+			if(t.sourcePhrase == null || t.sourcePhrase.trim().length() == 0) {
+				continue;
+			}
+			
+			if (t.targetPhrase == null || t.targetPhrase.trim().isEmpty()) {
 				missing += 1;
+			}
 
-			if (t.type == TranslationType.MACHINE)
+			if (t.type == TranslationType.MACHINE) {
 				machine += 1;
+			}
 		}
 
 		TranslationStatusSummary s = new TranslationStatusSummary();

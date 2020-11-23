@@ -1,10 +1,8 @@
 package com.peterfranza.propertytranslator.translators;
 
-import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Consumer;
 
 import com.google.gson.annotations.Expose;
 
@@ -46,14 +44,17 @@ public class JSONDictionary {
 		String filename;
 		
 		@Expose
-		Date date;
+		Long timestamp;
 		
 		@Expose
 		String checksum;
 		
 		@Override
 		public int compareTo(TranslationEvolutionSource o) {
-			return date.compareTo(o.date);
+			if(timestamp.compareTo(o.timestamp) != 0) {
+				return timestamp.compareTo(o.timestamp);
+			}
+			return filename.compareTo(filename);
 		}
 
 		@Override

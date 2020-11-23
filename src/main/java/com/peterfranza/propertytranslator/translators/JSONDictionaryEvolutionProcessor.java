@@ -92,7 +92,7 @@ public class JSONDictionaryEvolutionProcessor {
 				TranslationEvolutionSource src = new TranslationEvolutionSource();
 				src.filename = f.filename;
 				src.checksum = Utils.checksum(f.getAsFile());
-				src.date = new Date();
+				src.timestamp = new Date().getTime();
 				
 				if(allowProcessSource.apply(src)) {
 					infoLogConsumer.accept("Evolving '" + f.getAsFile().getAbsolutePath() + "' " + f.config);

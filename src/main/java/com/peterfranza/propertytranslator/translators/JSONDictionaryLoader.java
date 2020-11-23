@@ -76,7 +76,8 @@ public class JSONDictionaryLoader implements DictionaryLoader {
 	}
 
 	private static boolean isCompleteRecord(TranslationObject rec) {
-		return rec.sourcePhrase != null && rec.targetPhrase != null && rec.sourcePhrase.trim().length() > 0 && rec.targetPhrase.trim().length() > 0 ;
+		//return rec.sourcePhrase != null && rec.sourcePhrase.trim().length() > 0 && ((rec.targetPhrase != null && rec.targetPhrase.trim().length() > 0) || rec.timesUsed > 0)  ;
+		return true;
 	}
 	
 }
