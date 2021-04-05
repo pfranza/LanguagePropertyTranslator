@@ -98,7 +98,8 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 			});
 
 			List<String> includedFiles = Arrays.asList(fileSetManager.getIncludedFiles(fileset));
-			includedFiles.parallelStream().forEach(throwingConsumerWrapper(f -> {
+			getLog().debug("Including files: " + includedFiles.toString());
+			includedFiles.stream().forEach(throwingConsumerWrapper(f -> {
 
 				File inputFile = new File(root, f);
 				try (FileInputStream fis = new FileInputStream(inputFile)) {
@@ -218,7 +219,7 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 		Consumer<TranslatableWorkSourceInput> itemProcessor = (item) -> {
 			Optional<TranslatableWorkItem> existingWorkItem = work.parallelStream().filter(w -> w.isFor(item))
 					.findFirst();
-
+			getLog().info("Merging item: " + item.getUnitName());
 			if (existingWorkItem.isPresent()) {
 				existingWorkItem.get().add(item);
 			} else {
