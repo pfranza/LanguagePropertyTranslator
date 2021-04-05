@@ -219,7 +219,7 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 		Consumer<TranslatableWorkSourceInput> itemProcessor = (item) -> {
 			Optional<TranslatableWorkItem> existingWorkItem = work.parallelStream().filter(w -> w.isFor(item))
 					.findFirst();
-			getLog().info("Merging item: " + item.getUnitName());
+			getLog().debug("Merging item: " + item.getUnitName());
 			if (existingWorkItem.isPresent()) {
 				existingWorkItem.get().add(item);
 			} else {
