@@ -94,7 +94,7 @@ public class PropertyTranslationGenerator extends AbstractMojo {
 			});
 
 			List<String> includedFiles = Arrays.asList(fileSetManager.getIncludedFiles(fileset));
-			includedFiles.parallelStream().forEach(throwingConsumerWrapper(f -> {
+			includedFiles.stream().forEach(throwingConsumerWrapper(f -> {
 
 				File inputFile = new File(root, f);
 				try (FileInputStream fis = new FileInputStream(inputFile)) {
