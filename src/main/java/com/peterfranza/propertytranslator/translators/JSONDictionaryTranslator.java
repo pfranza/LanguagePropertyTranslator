@@ -249,7 +249,7 @@ public class JSONDictionaryTranslator implements Translator {
 			return Optional.empty();
 		}
 
-		return Optional.of(value.sourcePhrase);
+		return Optional.ofNullable(value.sourcePhrase);
 	}
 
 	public static class CleanProperties extends Properties {

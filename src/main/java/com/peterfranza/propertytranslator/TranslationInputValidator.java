@@ -1,18 +1,84 @@
 package com.peterfranza.propertytranslator;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-public class TranslationInputValidator {
+import com.peterfranza.propertytranslator.translators.TranslationType;
 
+@Mojo(name = "validate-language-delta", defaultPhase = LifecyclePhase.NONE)
+public class TranslationInputValidator extends AbstractMojo {
+
+	@Parameter(required = true)
+	String sourceLanguage;
+
+	@Parameter(alias = "translator", required = true)
+	TranslatorConfig[] translators;
+
+	@Parameter(property = "deltaInputFile", alias = "deltaInputFile", required = true)
+	String deltaInputFile;
+
+	@Parameter(property = "deltaTargetLanguage", alias = "deltaTargetLanguage", required = true)
+	String deltaTargetLanguage;
+
+	@Parameter(property = "delimiter", alias = "delimiter", required = true, defaultValue = "|")
+	String delimiter;
+
+	@Override
+	public void execute() throws MojoExecutionException, MojoFailureException {
+		try {
+
+			Arrays.asList(translators).stream().forEach(PropertyTranslationGenerator.throwingConsumerWrapper(t -> {
+				if (t.type == TranslatorGeneratorType.DICTIONARY
+						&& t.targetLanguage.equalsIgnoreCase(deltaTargetLanguage)) {
+					getLog().info(t.toString());
+					t.type.getTranslator().reconfigure(t, sourceLanguage, getLog()::info, getLog()::error);
+					t.type.getTranslator().open();
+
+					getLog().info("Validating " + t.targetLanguage + " from " + deltaInputFile);
+
+					TranslationPropertyFileReader.read(new File(deltaInputFile), delimiter, (e) -> {
+						String key = e.getKey();
+						String value = e.getValue();
+
+
+						Optional<String> sourcePhrase = t.type.getTranslator().getSourcePhrase(key);
+						if (sourcePhrase.isPresent()) {
+							boolean valid = TranslationInputValidator.checkValidity(key, sourcePhrase.get(), value,
+									getLog()::error);
+							if (!valid) {
+								throw new RuntimeException("Error processing key: "+key+" input: " + sourcePhrase.get());
+							}
+						}
+
+					});
+
+					t.type.getTranslator().printStats(getLog());
+					t.type.getTranslator().close();
+				}
+			}));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+	
 	private static List<ImportIntegrityChecker> CHECKS = Arrays.asList(
 			TranslationInputValidator::matchesVariableExpressions, TranslationInputValidator::matchesVariableCounting,
 			TranslationInputValidator::matchesVariableSpacing, TranslationInputValidator::matchesHtmlTags);
