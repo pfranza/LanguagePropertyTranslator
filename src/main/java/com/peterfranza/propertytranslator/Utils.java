@@ -33,9 +33,10 @@ public class Utils {
 		})).stream().findFirst();
 
 		if (file.isPresent()) {
-			CompilationUnit unit = JavaParser.parse(file.get());
-			if (unit.getPackageDeclaration().isPresent()) {
-				return unit.getPackageDeclaration().get().getNameAsString();
+			JavaParser parser = new JavaParser();
+			Optional<CompilationUnit> unit = parser.parse(file.get()).getResult();
+			if (unit.isPresent() && unit.get().getPackageDeclaration().isPresent()) {
+				return unit.get().getPackageDeclaration().get().getNameAsString();
 			}
 		}
 
